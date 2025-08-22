@@ -9,6 +9,9 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 
 @Entity
 @Table(name = "corsi")
@@ -18,13 +21,23 @@ public class Corso {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @NotBlank(message = "Il nome del corso è obbligatorio")
+    @Column(nullable = false)
     private String nome;
 
     @Column(columnDefinition = "TEXT")
     private String descrizione;
 
+    @NotNull(message = "La data è obbligatoria")
+    @Column(nullable = false)
     private LocalDate data;
+
+    @NotNull(message = "L'orario è obbligatorio")
+    @Column(nullable = false)
     private LocalTime orario;
+
+    @Positive(message = "Il numero massimo di posti deve essere positivo")
+    @Column(nullable = false)
     private int maxPosti;
 
     // Costruttore

@@ -6,6 +6,9 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
 @Entity
 @Table(name = "utenti")
@@ -16,14 +19,23 @@ public class Utente {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @NotBlank(message = "Il nome è obbligatorio") // non può essere vuota o solo spazi
+    @Column(nullable = false) // obbligatorio
     private String nome;
 
     @Column(unique = true)
+    @NotBlank(message = "L'email è obbligatoria") // non può essere vuota o solo spazi
+    @Email(message = "Formato email non valido") // deve avere un formato corretto
     private String email;
 
+    @NotBlank(message = "La password è obbligatoria")
+    @Size(min = 6, message = "La password deve avere almeno 6 caratteri")
+    @Column(nullable = false)
     private String password;
 
-    private String ruolo;
+    @NotBlank(message = "Il ruolo è obbligatorio")
+    @Column(nullable = false)
+    private String ruolo; // UTENTE o ISTRUTTORE
 
     // Costruttori
     public Utente() {
