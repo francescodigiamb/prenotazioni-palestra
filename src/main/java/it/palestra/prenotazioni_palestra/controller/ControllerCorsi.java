@@ -1,5 +1,6 @@
-package it.palestra.controller;
+package it.palestra.prenotazioni_palestra.controller;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,7 +25,15 @@ public class ControllerCorsi {
 
     @GetMapping("/corsi")
     public String listaCorsi(Model model) {
-        List<Corso> corsi = corsoRepository.findAll();
+        // Recupero i corsi dal DB; se qualcosa va storto, passo lista vuota
+        List<Corso> corsi;
+        try {
+            corsi = corsoRepository.findAll();
+        } catch (Exception e) {
+            corsi = Collections.emptyList();
+            // (facoltativo) puoi loggare l’errore
+            // e.printStackTrace();
+        }
         model.addAttribute("corsi", corsi);
         return "corsi"; // templates/corsi.html
     }
