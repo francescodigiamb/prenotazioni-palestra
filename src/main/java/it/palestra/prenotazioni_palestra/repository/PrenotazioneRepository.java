@@ -28,4 +28,7 @@ public interface PrenotazioneRepository extends JpaRepository<Prenotazione, Inte
     List<Prenotazione> findByCorso_Id(Integer corsoId);
 
     int countByCorso_Id(Integer corsoId);
+
+    // Elenco prenotazioni dato l'email utente (navigazione dell'associazione)
+    List<Prenotazione> findByUtente_Email(String email);
 }
