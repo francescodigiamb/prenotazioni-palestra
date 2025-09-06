@@ -9,7 +9,7 @@ public class Prenotazione {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
 
     // Relazione con Utente
     @ManyToOne
@@ -33,7 +33,7 @@ public class Prenotazione {
     }
 
     // Getter e Setter
-    public Long getId() {
+    public Integer getId() {
         return id;
     }
 
