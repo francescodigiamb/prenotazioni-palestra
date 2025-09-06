@@ -42,6 +42,10 @@ public class Corso {
 
     // Costruttore
 
+    public Corso() {
+
+    }
+
     public Corso(String nome, String descrizione, LocalDate data, LocalTime orario, int maxPosti) {
         this.nome = nome;
         this.descrizione = descrizione;
