@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
 import it.palestra.prenotazioni_palestra.model.Corso;
+import it.palestra.prenotazioni_palestra.model.Prenotazione;
 import it.palestra.prenotazioni_palestra.repository.CorsoRepository;
 import it.palestra.prenotazioni_palestra.repository.PrenotazioneRepository;
 
@@ -42,7 +43,7 @@ public class ControllerCorsi {
     @GetMapping("/corsi/{id}")
     public String dettaglioCorso(@PathVariable Integer id, Model model) {
 
-        // 1) Carico il corso dall'id (senza lambda)
+        // 1) Carico il corso dall'id
         Optional<Corso> nomeCorso = corsoRepository.findById(id);
         if (!nomeCorso.isPresent()) {
 
@@ -51,7 +52,7 @@ public class ControllerCorsi {
         Corso corso = nomeCorso.get();
 
         // 2) Conteggio prenotazioni per questo corso
-        // (versione "ad oggetto": passo direttamente l'entity Corso)
+
         int prenotati = prenotazioneRepository.countByCorso(corso);
 
         // 3) Calcolo posti disponibili (non sotto zero)
@@ -60,13 +61,41 @@ public class ControllerCorsi {
         if (postiDisponibili < 0) {
             postiDisponibili = 0;
         }
-
+        // Elenco prenotazioni per questo corso (per mostrare nome+email)
+        List<Prenotazione> prenotazioniCorso = prenotazioneRepository.findByCorso(corso);
         // 4) Aggiungo attributi al model per Thymeleaf
         model.addAttribute("corso", corso);
         model.addAttribute("prenotati", prenotati);
         model.addAttribute("postiDisponibili", postiDisponibili);
+        model.addAttribute("prenotazioniCorso", prenotazioniCorso);
 
         return "corso-dettaglio";
+    }
+
+    // pagina per il form di prenotazione corso
+    @GetMapping("/corsi/{id}/prenota")
+    public String prenotaCorso(@PathVariable Integer id, Model model) {
+
+        // Recupero il corso
+        Optional<Corso> maybeCorso = corsoRepository.findById(id);
+        if (!maybeCorso.isPresent()) {
+            throw new IllegalArgumentException("Corso non trovato: " + id);
+        }
+        Corso corso = maybeCorso.get();
+
+        // Calcolo posti disponibili
+        int prenotati = prenotazioneRepository.countByCorso(corso);
+        int postiDisponibili = corso.getMaxPosti() - prenotati;
+        if (postiDisponibili < 0) {
+            postiDisponibili = 0;
+        }
+
+        // Passo i dati al template
+        model.addAttribute("corso", corso);
+        model.addAttribute("prenotati", prenotati);
+        model.addAttribute("postiDisponibili", postiDisponibili);
+
+        return "prenota-corso"; // templates/prenota-corso.html
     }
 
 }
