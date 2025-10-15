@@ -18,6 +18,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 @Controller
 @RequestMapping("/prenotazioni")
@@ -32,15 +33,26 @@ public class ControllerPrenotazioni {
     @Autowired
     private PrenotazioneRepository prenotazioneRepository;
 
+    private static final Pattern EMAIL_RE = Pattern.compile("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$");
+
     /**
      * Crea una prenotazione.
      */
     @Transactional
     @PostMapping
     public String creaPrenotazione(@RequestParam("corsoId") Integer corsoId,
-            @RequestParam("email") String email,
-            @RequestParam("nome") String nome,
+            @RequestParam(value = "email", required = false) String email,
+            @RequestParam(value = "nome", required = false) String nome,
             RedirectAttributes redirectAttrs) {
+        // ✅ Validazioni base lato controller (prima di toccare il DB)
+        if (nome == null || nome.isBlank()) {
+            redirectAttrs.addFlashAttribute("warning", "Inserisci il nome.");
+            return "redirect:/corsi/" + corsoId + "/prenota";
+        }
+        if (email == null || !EMAIL_RE.matcher(email).matches()) {
+            redirectAttrs.addFlashAttribute("warning", "Inserisci un'email valida.");
+            return "redirect:/corsi/" + corsoId + "/prenota";
+        }
 
         // 1) Corso
         Optional<Corso> maybeCorso = corsoRepository.findById(corsoId);
