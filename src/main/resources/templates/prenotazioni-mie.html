@@ -16,9 +16,7 @@
         </div>
 
         <!-- ALERT messaggi flash -->
-        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
-        <div th:if="${warning}" class="alert alert-warning" th:text="${warning}"></div>
-        <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+        <div th:replace="~{fragments :: alerts}"></div>
 
         <!-- Messaggio se lista vuota -->
         <div th:if="${prenotazioni.isEmpty()}" class="alert alert-info">

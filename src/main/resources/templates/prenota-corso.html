@@ -20,9 +20,7 @@
         </div>
 
         <!-- Alert eventuali -->
-        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
-        <div th:if="${warning}" class="alert alert-warning" th:text="${warning}"></div>
-        <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+        <div th:replace="~{fragments :: alerts}"></div>
 
         <div class="row g-4">
             <div class="col-12 col-lg-6">

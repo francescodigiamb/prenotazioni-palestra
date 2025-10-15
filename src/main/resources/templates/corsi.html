@@ -13,6 +13,8 @@
             <h1 class="text-primary m-0">Corsi disponibili</h1>
             <a href="/" class="btn btn-outline-secondary">Torna alla Home</a>
         </div>
+        // ALERT
+        <div th:replace="~{fragments :: alerts}"></div>
 
         <!-- Messaggio se lista vuota -->
         <div th:if="${corsi.isEmpty()}" class="alert alert-info">
