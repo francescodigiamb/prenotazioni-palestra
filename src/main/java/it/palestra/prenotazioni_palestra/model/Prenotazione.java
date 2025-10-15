@@ -4,7 +4,8 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 
 @Entity
-@Table(name = "prenotazioni")
+@Table(name = "prenotazioni", uniqueConstraints = @UniqueConstraint(name = "uk_prenotazione_utente_corso", columnNames = {
+        "utente_id", "corso_id" }))
 public class Prenotazione {
 
     @Id

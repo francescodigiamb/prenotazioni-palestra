@@ -7,7 +7,9 @@ import it.palestra.prenotazioni_palestra.repository.CorsoRepository;
 import it.palestra.prenotazioni_palestra.repository.PrenotazioneRepository;
 import it.palestra.prenotazioni_palestra.repository.UtenteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,6 +35,7 @@ public class ControllerPrenotazioni {
     /**
      * Crea una prenotazione.
      */
+    @Transactional
     @PostMapping
     public String creaPrenotazione(@RequestParam("corsoId") Integer corsoId,
             @RequestParam("email") String email,
@@ -81,8 +84,15 @@ public class ControllerPrenotazioni {
         }
 
         // 5) Salva
-        Prenotazione p = new Prenotazione(utente, corso);
-        prenotazioneRepository.save(p);
+        try {
+            Prenotazione p = new Prenotazione(utente, corso);
+            prenotazioneRepository.save(p);
+
+        } catch (DataIntegrityViolationException e) {
+            // Scatta se due richieste simultanee tentano di inserire la stessa prenotazione
+            redirectAttrs.addFlashAttribute("warning", "Sei già prenotato a questo corso.");
+            return "redirect:/corsi/" + corsoId;
+        }
 
         redirectAttrs.addFlashAttribute("success", "Prenotazione effettuata con successo!");
         return "redirect:/corsi/" + corsoId;
