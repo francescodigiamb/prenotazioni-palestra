@@ -16,6 +16,9 @@ public interface PrenotazioneRepository extends JpaRepository<Prenotazione, Inte
 
     List<Prenotazione> findByCorso(Corso corso);
 
+    // ordinato per più recente prima
+    List<Prenotazione> findByCorsoOrderByCreatedAtDesc(Corso corso);
+
     int countByCorso(Corso corso);
 
     boolean existsByUtenteAndCorso(Utente utente, Corso corso);

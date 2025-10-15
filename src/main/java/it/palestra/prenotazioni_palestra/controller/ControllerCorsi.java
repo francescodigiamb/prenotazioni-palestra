@@ -1,5 +1,6 @@
 package it.palestra.prenotazioni_palestra.controller;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -68,22 +69,24 @@ public class ControllerCorsi {
         Corso corso = nomeCorso.get();
 
         // 2) Conteggio prenotazioni per questo corso
-
         int prenotati = prenotazioneRepository.countByCorso(corso);
-
         // 3) Calcolo posti disponibili (non sotto zero)
         int postiTotali = corso.getMaxPosti();
         int postiDisponibili = postiTotali - prenotati;
         if (postiDisponibili < 0) {
             postiDisponibili = 0;
         }
-        // Elenco prenotazioni per questo corso (per mostrare nome+email)
-        List<Prenotazione> prenotazioniCorso = prenotazioneRepository.findByCorso(corso);
+        // 🔽 ORDINATO PER DATA (più recente in alto)
+        List<Prenotazione> prenotazioniCorso = prenotazioneRepository.findByCorsoOrderByCreatedAtDesc(corso);
+
+        // Per badge “Nuovo” nelle ultime 24h
+        LocalDateTime nowMinus24h = LocalDateTime.now().minusHours(24);
         // 4) Aggiungo attributi al model per Thymeleaf
         model.addAttribute("corso", corso);
         model.addAttribute("prenotati", prenotati);
         model.addAttribute("postiDisponibili", postiDisponibili);
         model.addAttribute("prenotazioniCorso", prenotazioniCorso);
+        model.addAttribute("nowMinus24h", nowMinus24h);
 
         return "corso-dettaglio";
     }

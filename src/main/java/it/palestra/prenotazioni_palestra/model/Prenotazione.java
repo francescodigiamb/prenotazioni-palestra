@@ -1,5 +1,7 @@
 package it.palestra.prenotazioni_palestra.model;
 
+import java.time.LocalDateTime;
+
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 
@@ -23,6 +25,15 @@ public class Prenotazione {
     @ManyToOne
     @JoinColumn(name = "corso_id", nullable = false)
     private Corso corso;
+
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @PrePersist
+    void prePersist() {
+        if (createdAt == null)
+            createdAt = LocalDateTime.now();
+    }
 
     // Costruttori
     public Prenotazione() {
@@ -52,5 +63,13 @@ public class Prenotazione {
 
     public void setCorso(Corso corso) {
         this.corso = corso;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 }

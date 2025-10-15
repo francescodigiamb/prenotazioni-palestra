@@ -48,6 +48,7 @@
                                     <th>#</th>
                                     <th>Nome</th>
                                     <th>Email</th>
+                                    <th>Prenotato il</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -55,6 +56,13 @@
                                     <td th:text="${stat.index + 1}">1</td>
                                     <td th:text="${p.utente != null ? p.utente.nome : 'N/D'}">Mario Rossi</td>
                                     <td th:text="${p.utente != null ? p.utente.email : 'N/D'}">mario@example.com</td>
+
+                                    <td>
+                                        <span
+                                            th:text="${p.createdAt != null ? #temporals.format(p.createdAt, 'dd/MM/yyyy HH:mm') : '—'}">—</span>
+                                        <span th:if="${p.createdAt != null and p.createdAt.isAfter(nowMinus24h)}"
+                                            class="badge bg-info ms-2">Nuovo</span>
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>
