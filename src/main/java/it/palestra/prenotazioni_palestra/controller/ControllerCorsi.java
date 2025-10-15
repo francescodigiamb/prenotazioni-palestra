@@ -1,7 +1,9 @@
 package it.palestra.prenotazioni_palestra.controller;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.stereotype.Controller;
@@ -26,16 +28,30 @@ public class ControllerCorsi {
 
     @GetMapping("/corsi")
     public String listaCorsi(Model model) {
-        // Recupero i corsi dal DB; se qualcosa va storto, passo lista vuota
         List<Corso> corsi;
         try {
             corsi = corsoRepository.findAll();
         } catch (Exception e) {
             corsi = Collections.emptyList();
-            // (facoltativo) puoi loggare l’errore
-            // e.printStackTrace();
         }
+
+        // Calcoli per disponibilità
+        Map<Integer, Integer> prenotatiMap = new HashMap<>();
+        Map<Integer, Integer> disponibiliMap = new HashMap<>();
+        Map<Integer, Boolean> pienoMap = new HashMap<>();
+
+        for (Corso c : corsi) {
+            int prenotati = prenotazioneRepository.countByCorso(c);
+            int disponibili = Math.max(c.getMaxPosti() - prenotati, 0);
+            prenotatiMap.put(c.getId(), prenotati);
+            disponibiliMap.put(c.getId(), disponibili);
+            pienoMap.put(c.getId(), disponibili == 0);
+        }
+
         model.addAttribute("corsi", corsi);
+        model.addAttribute("prenotatiMap", prenotatiMap);
+        model.addAttribute("disponibiliMap", disponibiliMap);
+        model.addAttribute("pienoMap", pienoMap);
         return "corsi"; // templates/corsi.html
     }
 

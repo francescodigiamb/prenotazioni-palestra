@@ -28,7 +28,8 @@
                         <th>Nome</th>
                         <th>Data</th>
                         <th>Orario</th>
-                        <th>Posti max</th>
+                        <th>Capienza</th>
+                        <th>Disponibilità</th>
                         <th>Azioni</th>
                     </tr>
                 </thead>
@@ -36,14 +37,31 @@
                     <tr th:each="corso : ${corsi}">
                         <td th:text="${corso.id}">1</td>
                         <td th:text="${corso.nome}">Nome corso</td>
-                        <!-- per ora stampiamo così (ISO); formatteremo dopo -->
-                        <td th:text="${corso.data}">2025-09-01</td>
-                        <td th:text="${corso.orario}">18:00</td>
-                        <td th:text="${corso.maxPosti}">12</td>
+
+                        <!-- Formattazioni carine -->
+                        <td th:text="${#temporals.format(corso.data, 'dd/MM/yyyy')}">01/09/2025</td>
+                        <td th:text="${#temporals.format(corso.orario, 'HH:mm')}">18:00</td>
+
+                        <!-- Capienza attuale -->
+                        <td>
+                            <span th:text="${prenotatiMap[corso.id]}">0</span> /
+                            <span th:text="${corso.maxPosti}">12</span>
+                        </td>
+
+                        <!-- Badge disponibilità -->
+                        <td>
+                            <span th:if="${pienoMap[corso.id]}" class="badge bg-danger">Pieno</span>
+                            <span th:if="${!pienoMap[corso.id]}" class="badge bg-success"
+                                th:text="'Disponibili: ' + ${disponibiliMap[corso.id]}">Disponibili: 5</span>
+                        </td>
+
+                        <!-- Azioni: disabilita Prenota se pieno -->
                         <td>
                             <a class="btn btn-primary btn-sm" th:href="@{|/corsi/${corso.id}|}">Dettagli</a>
-                            <a class="btn btn-success btn-sm" th:href="@{|/corsi/${corso.id}/prenota|}">Prenota</a>
-
+                            <a class="btn btn-success btn-sm" th:classappend="${pienoMap[corso.id]} ? ' disabled' : ''"
+                                th:attr="aria-disabled=${pienoMap[corso.id]}" th:href="@{|/corsi/${corso.id}/prenota|}">
+                                Prenota
+                            </a>
                         </td>
                     </tr>
                 </tbody>
