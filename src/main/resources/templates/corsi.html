@@ -59,7 +59,7 @@
 
                         <!-- Azioni: disabilita Prenota se pieno -->
                         <td>
-                            <a class="btn btn-primary btn-sm" th:href="@{|/corsi/${corso.id}|}">Dettagli</a>
+                            <a class="btn btn-primary btn-sm" th:href="@{/corsi/{id}(id=${corso.id})}">Dettagli</a>
                             <a class="btn btn-success btn-sm" th:classappend="${pienoMap[corso.id]} ? ' disabled' : ''"
                                 th:attr="aria-disabled=${pienoMap[corso.id]}" th:href="@{|/corsi/${corso.id}/prenota|}">
                                 Prenota

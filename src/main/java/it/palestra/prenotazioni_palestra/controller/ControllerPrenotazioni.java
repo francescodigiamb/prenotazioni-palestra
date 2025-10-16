@@ -44,7 +44,7 @@ public class ControllerPrenotazioni {
             @RequestParam(value = "email", required = false) String email,
             @RequestParam(value = "nome", required = false) String nome,
             RedirectAttributes redirectAttrs) {
-        // ✅ Validazioni base lato controller (prima di toccare il DB)
+        // Validazioni base lato controller (prima di toccare il DB)
         if (nome == null || nome.isBlank()) {
             redirectAttrs.addFlashAttribute("warning", "Inserisci il nome.");
             return "redirect:/corsi/" + corsoId + "/prenota";
@@ -54,8 +54,8 @@ public class ControllerPrenotazioni {
             return "redirect:/corsi/" + corsoId + "/prenota";
         }
 
-        // 1) Corso
-        Optional<Corso> maybeCorso = corsoRepository.findById(corsoId);
+        // 1) Corso con LOCK (anti-race)
+        Optional<Corso> maybeCorso = corsoRepository.lockById(corsoId);
         if (!maybeCorso.isPresent()) {
             redirectAttrs.addFlashAttribute("error", "Corso non trovato.");
             return "redirect:/corsi";
@@ -81,21 +81,19 @@ public class ControllerPrenotazioni {
             utente = utenteRepository.save(utente);
         }
 
-        // 3) Doppia prenotazione
-        boolean esiste = prenotazioneRepository.existsByUtenteAndCorso(utente, corso);
-        if (esiste) {
+        // 3) Check duplicato e capienza *sotto lock*
+        if (prenotazioneRepository.existsByUtenteAndCorso(utente, corso)) {
             redirectAttrs.addFlashAttribute("warning", "Sei già prenotato a questo corso.");
             return "redirect:/corsi/" + corsoId;
         }
 
-        // 4) Capienza
         int prenotati = prenotazioneRepository.countByCorso(corso);
         if (prenotati >= corso.getMaxPosti()) {
             redirectAttrs.addFlashAttribute("error", "Corso al completo. Non è possibile prenotare.");
             return "redirect:/corsi/" + corsoId;
         }
 
-        // 5) Salva
+        // 4) Salva con rete di sicurezza sul vincolo unico
         try {
             Prenotazione p = new Prenotazione(utente, corso);
             prenotazioneRepository.save(p);

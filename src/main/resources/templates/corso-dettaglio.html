@@ -82,6 +82,11 @@
                         <li><strong>Posti totali:</strong> <span th:text="${corso.maxPosti}">12</span></li>
                         <li><strong>Già prenotati:</strong> <span th:text="${prenotati}">0</span></li>
                         <li><strong>Posti disponibili:</strong> <span th:text="${postiDisponibili}">12</span></li>
+                        <li>
+                            <strong>Stato:</strong>
+                            <span th:if="${postiDisponibili == 0}" class="badge bg-danger">Pieno</span>
+                            <span th:if="${postiDisponibili > 0}" class="badge bg-success">Disponibile</span>
+                        </li>
                     </ul>
                     <!-- Bottoni di ritorno (anche qui, per comodità) -->
                     <div class="d-grid gap-2 mt-3">
