@@ -87,6 +87,18 @@
                             <span th:if="${postiDisponibili == 0}" class="badge bg-danger">Pieno</span>
                             <span th:if="${postiDisponibili > 0}" class="badge bg-success">Disponibile</span>
                         </li>
+                        <!-- badge “Scaduto” se data/ora sono passate -->
+                        <li>
+                            <strong>Validità:</strong>
+                            <span th:if="${#temporals.createNow().toLocalDate().isAfter(corso.data) 
+                                        or (#temporals.createNow().toLocalDate().isEqual(corso.data) 
+                                        and #temporals.createNow().toLocalTime().isAfter(corso.orario))}"
+                                class="badge bg-secondary">Scaduto</span>
+                            <span th:if="${#temporals.createNow().toLocalDate().isBefore(corso.data) 
+                                or (#temporals.createNow().toLocalDate().isEqual(corso.data) 
+                                and #temporals.createNow().toLocalTime().isBefore(corso.orario))}"
+                                class="badge bg-success">Valido</span>
+                        </li>
                     </ul>
                     <!-- Bottoni di ritorno (anche qui, per comodità) -->
                     <div class="d-grid gap-2 mt-3">

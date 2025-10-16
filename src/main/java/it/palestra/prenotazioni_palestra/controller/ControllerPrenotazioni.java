@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.*;
 
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -61,6 +63,12 @@ public class ControllerPrenotazioni {
             return "redirect:/corsi";
         }
         Corso corso = maybeCorso.get();
+
+        if (corso.getData().isBefore(LocalDate.now()) ||
+                (corso.getData().isEqual(LocalDate.now()) && corso.getOrario().isBefore(LocalTime.now()))) {
+            redirectAttrs.addFlashAttribute("error", "Il corso è scaduto: non è più possibile prenotare.");
+            return "redirect:/corsi/" + corsoId;
+        }
 
         // 2) Utente (recupera o crea)
         Utente utente;

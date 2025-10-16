@@ -13,7 +13,7 @@
             <h1 class="text-primary m-0">Corsi disponibili</h1>
             <a href="/" class="btn btn-outline-secondary">Torna alla Home</a>
         </div>
-        // ALERT
+        <!-- ALERT -->
         <div th:replace="~{fragments :: alerts}"></div>
 
         <!-- Messaggio se lista vuota -->
@@ -61,9 +61,18 @@
                         <td>
                             <a class="btn btn-primary btn-sm" th:href="@{/corsi/{id}(id=${corso.id})}">Dettagli</a>
                             <a class="btn btn-success btn-sm" th:classappend="${pienoMap[corso.id]} ? ' disabled' : ''"
-                                th:attr="aria-disabled=${pienoMap[corso.id]}" th:href="@{|/corsi/${corso.id}/prenota|}">
+                                th:attr="aria-disabled=${pienoMap[corso.id]}" th:if="${#temporals.createNow().toLocalDate().isBefore(corso.data) 
+                                or (#temporals.createNow().toLocalDate().isEqual(corso.data) 
+                                and #temporals.createNow().toLocalTime().isBefore(corso.orario))}"
+                                th:href="@{/corsi/{id}/prenota(id=${corso.id})}">
                                 Prenota
                             </a>
+                            <span class="badge bg-secondary" th:if="${#temporals.createNow().toLocalDate().isAfter(corso.data) 
+                                or (#temporals.createNow().toLocalDate().isEqual(corso.data) 
+                                and #temporals.createNow().toLocalTime().isAfter(corso.orario))}">
+                                Scaduto
+                            </span>
+
                         </td>
                     </tr>
                 </tbody>

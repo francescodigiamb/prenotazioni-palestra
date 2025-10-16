@@ -1,6 +1,8 @@
 package it.palestra.prenotazioni_palestra.controller;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -11,6 +13,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import it.palestra.prenotazioni_palestra.model.Corso;
 import it.palestra.prenotazioni_palestra.model.Prenotazione;
@@ -21,6 +24,16 @@ import it.palestra.prenotazioni_palestra.repository.PrenotazioneRepository;
 public class ControllerCorsi {
     private final CorsoRepository corsoRepository;
     private final PrenotazioneRepository prenotazioneRepository;
+
+    // metodo per vedere se la tabella è da eliminare o meno in base alla data
+    private boolean isExpired(Corso c) {
+        LocalDate today = LocalDate.now();
+        if (c.getData().isBefore(today))
+            return true;
+        if (c.getData().isEqual(today) && c.getOrario().isBefore(LocalTime.now()))
+            return true;
+        return false;
+    }
 
     public ControllerCorsi(CorsoRepository corsoRepository, PrenotazioneRepository prenotazioneRepository) {
         this.corsoRepository = corsoRepository;
@@ -36,20 +49,25 @@ public class ControllerCorsi {
             corsi = Collections.emptyList();
         }
 
-        // Calcoli per disponibilità
+        // Filtro fuori i corsi scaduti
+        List<Corso> visibili = corsi.stream()
+                .filter(c -> !isExpired(c))
+                .toList();
+
+        // Calcoli per disponibilità sui corsi visibili
         Map<Integer, Integer> prenotatiMap = new HashMap<>();
         Map<Integer, Integer> disponibiliMap = new HashMap<>();
         Map<Integer, Boolean> pienoMap = new HashMap<>();
 
-        for (Corso c : corsi) {
-            int prenotati = prenotazioneRepository.countByCorso(c);
-            int disponibili = Math.max(c.getMaxPosti() - prenotati, 0);
-            prenotatiMap.put(c.getId(), prenotati);
-            disponibiliMap.put(c.getId(), disponibili);
-            pienoMap.put(c.getId(), disponibili == 0);
+        for (Corso c : visibili) {
+            int pren = prenotazioneRepository.countByCorso(c);
+            int disp = Math.max(c.getMaxPosti() - pren, 0);
+            prenotatiMap.put(c.getId(), pren);
+            disponibiliMap.put(c.getId(), disp);
+            pienoMap.put(c.getId(), disp == 0);
         }
 
-        model.addAttribute("corsi", corsi);
+        model.addAttribute("corsi", visibili);
         model.addAttribute("prenotatiMap", prenotatiMap);
         model.addAttribute("disponibiliMap", disponibiliMap);
         model.addAttribute("pienoMap", pienoMap);
@@ -93,28 +111,25 @@ public class ControllerCorsi {
 
     // pagina per il form di prenotazione corso
     @GetMapping("/corsi/{id}/prenota")
-    public String prenotaCorso(@PathVariable Integer id, Model model) {
-
-        // Recupero il corso
+    public String prenotaCorso(@PathVariable Integer id, Model model, RedirectAttributes ra) {
         Optional<Corso> maybeCorso = corsoRepository.findById(id);
-        if (!maybeCorso.isPresent()) {
+        if (!maybeCorso.isPresent())
             throw new IllegalArgumentException("Corso non trovato: " + id);
-        }
         Corso corso = maybeCorso.get();
 
-        // Calcolo posti disponibili
-        int prenotati = prenotazioneRepository.countByCorso(corso);
-        int postiDisponibili = corso.getMaxPosti() - prenotati;
-        if (postiDisponibili < 0) {
-            postiDisponibili = 0;
+        // ⛔ Blocca se scaduto
+        if (isExpired(corso)) {
+            ra.addFlashAttribute("error", "Il corso è scaduto: non è più possibile prenotare.");
+            return "redirect:/corsi/" + id;
         }
 
-        // Passo i dati al template
+        int prenotati = prenotazioneRepository.countByCorso(corso);
+        int postiDisponibili = Math.max(corso.getMaxPosti() - prenotati, 0);
+
         model.addAttribute("corso", corso);
         model.addAttribute("prenotati", prenotati);
         model.addAttribute("postiDisponibili", postiDisponibili);
-
-        return "prenota-corso"; // templates/prenota-corso.html
+        return "prenota-corso";
     }
 
 }
