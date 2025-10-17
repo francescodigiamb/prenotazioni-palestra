@@ -34,4 +34,7 @@ public interface PrenotazioneRepository extends JpaRepository<Prenotazione, Inte
 
     // Elenco prenotazioni dato l'email utente (navigazione dell'associazione)
     List<Prenotazione> findByUtente_Email(String email);
+
+    void deleteByCorso(Corso corso);
+
 }

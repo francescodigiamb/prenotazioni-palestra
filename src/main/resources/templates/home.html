@@ -30,14 +30,30 @@
                 <button class="btn btn-sm btn-outline-light" type="submit">Logout</button>
             </form>
             // Area ADMIN
-            <a th:if="${#authorization.expression('hasRole(''ADMIN'')')}" href="/admin/corsi-archiviati"
-                class="btn btn-outline-light ms-2">
-                Area Admin
-            </a>
+            <!-- Solo ADMIN -->
+            <div class="dropdown ms-2" th:if="${#authorization.expression('hasRole(''ADMIN'')')}">
+                <button class="btn btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    Area Admin
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" href="/admin/corsi">Gestione corsi</a></li>
+                    <li><a class="dropdown-item" href="/admin/prenotazioni">Prenotazioni</a></li>
+
+                    <li><a class="dropdown-item" href="/admin/corsi/nuovo">Nuovo corso</a></li>
+                    <li>
+                        <hr class="dropdown-divider">
+                    </li>
+                    <li><a class="dropdown-item" href="/admin/corsi-archiviati">Corsi archiviati</a></li>
+                </ul>
+            </div>
+
 
             <!-- Se NON autenticato: mostra Login -->
             <a th:if="${#authorization.expression('!isAuthenticated()')}" href="/login"
                 class="btn btn-sm btn-outline-light">Login</a>
+            <a th:if="${#authorization.expression('!isAuthenticated()')}" href="/register"
+                class="btn btn-sm btn-outline-light ms-2">Registrati</a>
+
         </div>
 
     </nav>

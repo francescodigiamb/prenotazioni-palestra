@@ -6,47 +6,37 @@ import it.palestra.prenotazioni_palestra.model.Utente;
 import it.palestra.prenotazioni_palestra.repository.CorsoRepository;
 import it.palestra.prenotazioni_palestra.repository.PrenotazioneRepository;
 import it.palestra.prenotazioni_palestra.repository.UtenteRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 @Controller
 @RequestMapping("/prenotazioni")
 public class ControllerPrenotazioni {
 
-    @Autowired
-    private CorsoRepository corsoRepository;
-
-    @Autowired
-    private UtenteRepository utenteRepository;
-
-    @Autowired
-    private PrenotazioneRepository prenotazioneRepository;
-
-    // inietta il PasswordEncoder se devi ancora creare utenti al volo:
-    private final PasswordEncoder passwordEncoder;
+    private final CorsoRepository corsoRepository;
+    private final UtenteRepository utenteRepository;
+    private final PrenotazioneRepository prenotazioneRepository;
 
     public ControllerPrenotazioni(CorsoRepository corsoRepository,
             UtenteRepository utenteRepository,
-            PrenotazioneRepository prenotazioneRepository,
-            PasswordEncoder passwordEncoder) {
+            PrenotazioneRepository prenotazioneRepository) {
         this.corsoRepository = corsoRepository;
         this.utenteRepository = utenteRepository;
         this.prenotazioneRepository = prenotazioneRepository;
-        this.passwordEncoder = passwordEncoder;
     }
 
-    // Crea una prenotazione.
-
+    // ====== CREA PRENOTAZIONE (POST) ======
     @Transactional
     @PostMapping
     public String creaPrenotazione(@RequestParam("corsoId") Integer corsoId,
@@ -56,133 +46,122 @@ public class ControllerPrenotazioni {
         // 1) Utente autenticato
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String email = (auth != null) ? auth.getName() : null;
-        if (email == null) {
+        if (email == null || "anonymousUser".equalsIgnoreCase(email)) {
             redirectAttrs.addFlashAttribute("error", "Devi accedere per prenotare.");
             return "redirect:/login";
         }
 
-        // 2) Validazioni base nome (facoltativo, puoi anche usare quello già salvato su
-        // utente)
-        if (nome == null || nome.isBlank()) {
-            redirectAttrs.addFlashAttribute("warning", "Inserisci il nome.");
-            return "redirect:/corsi/" + corsoId + "/prenota";
+        // 2) Utente deve esistere (niente creazione al volo)
+        Optional<Utente> maybeUtente = utenteRepository.findByEmail(email.trim());
+        if (!maybeUtente.isPresent()) {
+            redirectAttrs.addFlashAttribute("error", "Account non valido. Effettua nuovamente l'accesso.");
+            return "redirect:/login";
+        }
+        Utente utente = maybeUtente.get();
+
+        // (facoltativo) aggiorna nome profilo se fornito e diverso
+        if (nome != null && !nome.trim().isEmpty()
+                && (utente.getNome() == null || !utente.getNome().equals(nome.trim()))) {
+            utente.setNome(nome.trim());
+            utenteRepository.save(utente);
         }
 
-        // 3) Corso con LOCK (anti-overbooking)
-        Optional<Corso> maybeCorso = corsoRepository.lockById(corsoId);
+        // 3) Corso (se hai un metodo lockById usa quello; qui usiamo findById per
+        // compatibilità)
+        Optional<Corso> maybeCorso = corsoRepository.findById(corsoId);
         if (!maybeCorso.isPresent()) {
             redirectAttrs.addFlashAttribute("error", "Corso non trovato.");
             return "redirect:/corsi";
         }
         Corso corso = maybeCorso.get();
 
-        // 4) Blocca corsi scaduti
+        // 4) Blocchi: scaduto / chiuso
         if (corso.getData().isBefore(LocalDate.now()) ||
                 (corso.getData().isEqual(LocalDate.now()) && corso.getOrario().isBefore(LocalTime.now()))) {
             redirectAttrs.addFlashAttribute("error", "Il corso è scaduto: non è più possibile prenotare.");
             return "redirect:/corsi/" + corsoId;
         }
-        // blocca se corsi chiusi
         if (corso.isChiuso()) {
             redirectAttrs.addFlashAttribute("warning", "Le prenotazioni per questo corso sono momentaneamente chiuse.");
             return "redirect:/corsi/" + corsoId;
         }
 
-        // 5) Utente (recupero/aggiornamento)
-        Utente utente = utenteRepository.findByEmail(email).orElse(null);
-        if (utente == null) {
-            utente = new Utente();
-            utente.setEmail(email);
-            utente.setNome(nome);
-            utente.setRuolo("UTENTE");
-            utente.setPassword(passwordEncoder.encode("123456")); // placeholder finché non c'è registrazione
-            utente = utenteRepository.save(utente);
-        } else if (utente.getNome() == null || !utente.getNome().equals(nome)) {
-            utente.setNome(nome);
-            utenteRepository.save(utente);
-        }
-
-        // 6) Doppione + capienza (sotto lock)
+        // 5) Doppia prenotazione
         if (prenotazioneRepository.existsByUtenteAndCorso(utente, corso)) {
             redirectAttrs.addFlashAttribute("warning", "Sei già prenotato a questo corso.");
             return "redirect:/corsi/" + corsoId;
         }
+
+        // 6) Capienza
         int prenotati = prenotazioneRepository.countByCorso(corso);
         if (prenotati >= corso.getMaxPosti()) {
             redirectAttrs.addFlashAttribute("error", "Corso al completo. Non è possibile prenotare.");
             return "redirect:/corsi/" + corsoId;
         }
 
-        // 7) Salva con rete di sicurezza
-        try {
-            Prenotazione p = new Prenotazione(utente, corso);
-            prenotazioneRepository.save(p);
-        } catch (org.springframework.dao.DataIntegrityViolationException e) {
-            redirectAttrs.addFlashAttribute("warning", "Sei già prenotato a questo corso.");
-            return "redirect:/corsi/" + corsoId;
-        }
+        // 7) Salva
+        Prenotazione p = new Prenotazione(utente, corso);
+        prenotazioneRepository.save(p);
 
         redirectAttrs.addFlashAttribute("success", "Prenotazione effettuata con successo!");
         return "redirect:/corsi/" + corsoId;
     }
 
-    /**
-     * Elenco delle prenotazioni dell'utente (per email).
-     * Se l'email non è passata, mostra la pagina con form vuoto.
-     */
+    // ====== LE MIE PRENOTAZIONI (GET) ======
     @GetMapping("/mie")
     public String miePrenotazioni(@RequestParam(value = "email", required = false) String email,
             Model model) {
 
-        // Se non arriva dal param, prendi l'email dal SecurityContext
+        // se non arriva dal parametro, usa l'utente loggato
         if (email == null || email.trim().isEmpty()) {
-            var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName())) {
-                email = auth.getName(); // username = email
+                email = auth.getName();
             }
         }
 
         if (email == null || email.trim().isEmpty()) {
-            // fallback: nessuna email disponibile -> lista vuota ma pagina carica
             model.addAttribute("email", "");
-            model.addAttribute("prenotazioni", java.util.Collections.emptyList());
+            model.addAttribute("prenotazioni", Collections.emptyList());
             return "prenotazioni-mie";
         }
 
-        // carica prenotazioni dell'utente loggato
-        java.util.List<it.palestra.prenotazioni_palestra.model.Prenotazione> prenotazioni = prenotazioneRepository
-                .findByUtente_Email(email);
-
-        model.addAttribute("email", email);
+        List<Prenotazione> prenotazioni = prenotazioneRepository.findByUtente_Email(email.trim());
+        model.addAttribute("email", email.trim());
         model.addAttribute("prenotazioni", prenotazioni);
         return "prenotazioni-mie";
     }
 
-    /**
-     * Cancella una prenotazione (controllo base sull'email del proprietario).
-     */
+    // ====== CANCELLA PRENOTAZIONE (POST) ======
     @PostMapping("/{id}/cancella")
     public String cancellaPrenotazione(@PathVariable("id") Integer prenotazioneId,
-            @RequestParam("email") String email,
             RedirectAttributes redirectAttrs) {
+
+        // email dall'utente loggato
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String email = (auth != null) ? auth.getName() : null;
+        if (email == null || "anonymousUser".equalsIgnoreCase(email)) {
+            redirectAttrs.addFlashAttribute("error", "Devi accedere per gestire le tue prenotazioni.");
+            return "redirect:/login";
+        }
 
         Optional<Prenotazione> maybeP = prenotazioneRepository.findById(prenotazioneId);
         if (!maybeP.isPresent()) {
             redirectAttrs.addFlashAttribute("error", "Prenotazione non trovata.");
-            return "redirect:/prenotazioni/mie?email=" + email;
+            return "redirect:/prenotazioni/mie";
         }
 
         Prenotazione p = maybeP.get();
 
-        // Sicurezza minimale: solo il proprietario (stessa email) può disdire
+        // Solo il proprietario può cancellare
         if (p.getUtente() == null || p.getUtente().getEmail() == null
                 || !p.getUtente().getEmail().equalsIgnoreCase(email)) {
             redirectAttrs.addFlashAttribute("error", "Non sei autorizzato a cancellare questa prenotazione.");
-            return "redirect:/prenotazioni/mie?email=" + email;
+            return "redirect:/prenotazioni/mie";
         }
 
         prenotazioneRepository.deleteById(prenotazioneId);
         redirectAttrs.addFlashAttribute("success", "Prenotazione cancellata correttamente.");
-        return "redirect:/prenotazioni/mie?email=" + email;
+        return "redirect:/prenotazioni/mie";
     }
 }

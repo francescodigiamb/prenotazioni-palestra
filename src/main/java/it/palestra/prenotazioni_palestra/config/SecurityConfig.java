@@ -34,12 +34,14 @@ public class SecurityConfig {
                 http
                                 .authenticationProvider(authProvider())
                                 .authorizeHttpRequests(auth -> auth
-                                                .requestMatchers("/", "/home", "/corsi", "/corsi/*", "/css/**",
-                                                                "/js/**")
+                                                .requestMatchers("/", "/home", "/corsi", "/corsi/*", "/login",
+                                                                "/register", "/css/**", "/js/**")
                                                 .permitAll()
+                                                .requestMatchers("/account/**").authenticated()
                                                 .requestMatchers("/prenotazioni/**").authenticated()
                                                 .requestMatchers("/admin/**").hasRole("ADMIN")
                                                 .anyRequest().permitAll())
+
                                 .formLogin(form -> form
                                                 .loginPage("/login").permitAll()
                                                 .defaultSuccessUrl("/corsi", true))
