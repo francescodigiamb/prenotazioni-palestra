@@ -17,8 +17,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 
 @Controller
@@ -131,13 +129,25 @@ public class ControllerPrenotazioni {
     public String miePrenotazioni(@RequestParam(value = "email", required = false) String email,
             Model model) {
 
+        // Se non arriva dal param, prendi l'email dal SecurityContext
         if (email == null || email.trim().isEmpty()) {
+            var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName())) {
+                email = auth.getName(); // username = email
+            }
+        }
+
+        if (email == null || email.trim().isEmpty()) {
+            // fallback: nessuna email disponibile -> lista vuota ma pagina carica
             model.addAttribute("email", "");
-            model.addAttribute("prenotazioni", Collections.emptyList());
+            model.addAttribute("prenotazioni", java.util.Collections.emptyList());
             return "prenotazioni-mie";
         }
 
-        List<Prenotazione> prenotazioni = prenotazioneRepository.findByUtente_Email(email);
+        // carica prenotazioni dell'utente loggato
+        java.util.List<it.palestra.prenotazioni_palestra.model.Prenotazione> prenotazioni = prenotazioneRepository
+                .findByUtente_Email(email);
+
         model.addAttribute("email", email);
         model.addAttribute("prenotazioni", prenotazioni);
         return "prenotazioni-mie";
