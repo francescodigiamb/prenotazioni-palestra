@@ -12,41 +12,45 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 public class SecurityConfig {
 
-    private final CustomUserDetailsService userDetailsService;
-    private final PasswordEncoder passwordEncoder;
+        private final CustomUserDetailsService userDetailsService;
+        private final PasswordEncoder passwordEncoder;
 
-    public SecurityConfig(CustomUserDetailsService userDetailsService,
-            PasswordEncoder passwordEncoder) {
-        this.userDetailsService = userDetailsService;
-        this.passwordEncoder = passwordEncoder;
-    }
+        public SecurityConfig(CustomUserDetailsService userDetailsService,
+                        PasswordEncoder passwordEncoder) {
+                this.userDetailsService = userDetailsService;
+                this.passwordEncoder = passwordEncoder;
+        }
 
-    @Bean
-    public DaoAuthenticationProvider authProvider() {
-        DaoAuthenticationProvider p = new DaoAuthenticationProvider();
-        p.setUserDetailsService(userDetailsService);
-        p.setPasswordEncoder(passwordEncoder);
-        return p;
-    }
+        @Bean
+        public DaoAuthenticationProvider authProvider() {
+                DaoAuthenticationProvider p = new DaoAuthenticationProvider();
+                p.setUserDetailsService(userDetailsService);
+                p.setPasswordEncoder(passwordEncoder);
+                return p;
+        }
 
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-                .authenticationProvider(authProvider())
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/home", "/corsi", "/corsi/*", "/css/**", "/js/**").permitAll()
-                        .requestMatchers("/prenotazioni/**").authenticated()
-                        // futuro: .requestMatchers("/admin/**").hasRole("ISTRUTTORE")
-                        .anyRequest().permitAll())
-                .formLogin(form -> form
-                        .loginPage("/login").permitAll()
-                        .defaultSuccessUrl("/corsi", true))
-                .logout(logout -> logout
-                        .logoutUrl("/logout")
-                        .logoutSuccessUrl("/corsi")
-                        .permitAll())
-                .csrf(Customizer.withDefaults());
+        @Bean
+        public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+                http
+                                .authenticationProvider(authProvider())
+                                .authorizeHttpRequests(auth -> auth
+                                                .requestMatchers("/", "/home", "/corsi", "/corsi/*", "/css/**",
+                                                                "/js/**")
+                                                .permitAll()
+                                                .requestMatchers("/prenotazioni/**").authenticated()
+                                                // futuro: .requestMatchers("/admin/**").hasRole("ISTRUTTORE")
+                                                .anyRequest().permitAll())
+                                .formLogin(form -> form
+                                                .loginPage("/login").permitAll()
+                                                .defaultSuccessUrl("/corsi", true))
+                                .logout(logout -> logout
+                                                .logoutUrl("/logout")
+                                                .logoutSuccessUrl("/home")
+                                                .invalidateHttpSession(true)
+                                                .deleteCookies("JSESSIONID")
+                                                .permitAll())
+                                .csrf(Customizer.withDefaults());
 
-        return http.build();
-    }
+                return http.build();
+        }
 }
