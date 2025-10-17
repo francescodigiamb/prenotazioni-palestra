@@ -7,20 +7,19 @@ import it.palestra.prenotazioni_palestra.repository.CorsoRepository;
 import it.palestra.prenotazioni_palestra.repository.PrenotazioneRepository;
 import it.palestra.prenotazioni_palestra.repository.UtenteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.regex.Pattern;
 
 @Controller
 @RequestMapping("/prenotazioni")
@@ -35,28 +34,43 @@ public class ControllerPrenotazioni {
     @Autowired
     private PrenotazioneRepository prenotazioneRepository;
 
-    private static final Pattern EMAIL_RE = Pattern.compile("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$");
+    // inietta il PasswordEncoder se devi ancora creare utenti al volo:
+    private final PasswordEncoder passwordEncoder;
 
-    /**
-     * Crea una prenotazione.
-     */
+    public ControllerPrenotazioni(CorsoRepository corsoRepository,
+            UtenteRepository utenteRepository,
+            PrenotazioneRepository prenotazioneRepository,
+            PasswordEncoder passwordEncoder) {
+        this.corsoRepository = corsoRepository;
+        this.utenteRepository = utenteRepository;
+        this.prenotazioneRepository = prenotazioneRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
+
+    // Crea una prenotazione.
+
     @Transactional
     @PostMapping
     public String creaPrenotazione(@RequestParam("corsoId") Integer corsoId,
-            @RequestParam(value = "email", required = false) String email,
             @RequestParam(value = "nome", required = false) String nome,
             RedirectAttributes redirectAttrs) {
-        // Validazioni base lato controller (prima di toccare il DB)
+
+        // 1) Utente autenticato
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String email = (auth != null) ? auth.getName() : null;
+        if (email == null) {
+            redirectAttrs.addFlashAttribute("error", "Devi accedere per prenotare.");
+            return "redirect:/login";
+        }
+
+        // 2) Validazioni base nome (facoltativo, puoi anche usare quello già salvato su
+        // utente)
         if (nome == null || nome.isBlank()) {
             redirectAttrs.addFlashAttribute("warning", "Inserisci il nome.");
             return "redirect:/corsi/" + corsoId + "/prenota";
         }
-        if (email == null || !EMAIL_RE.matcher(email).matches()) {
-            redirectAttrs.addFlashAttribute("warning", "Inserisci un'email valida.");
-            return "redirect:/corsi/" + corsoId + "/prenota";
-        }
 
-        // 1) Corso con LOCK (anti-race)
+        // 3) Corso con LOCK (anti-overbooking)
         Optional<Corso> maybeCorso = corsoRepository.lockById(corsoId);
         if (!maybeCorso.isPresent()) {
             redirectAttrs.addFlashAttribute("error", "Corso non trovato.");
@@ -64,50 +78,43 @@ public class ControllerPrenotazioni {
         }
         Corso corso = maybeCorso.get();
 
+        // 4) Blocca corsi scaduti
         if (corso.getData().isBefore(LocalDate.now()) ||
                 (corso.getData().isEqual(LocalDate.now()) && corso.getOrario().isBefore(LocalTime.now()))) {
             redirectAttrs.addFlashAttribute("error", "Il corso è scaduto: non è più possibile prenotare.");
             return "redirect:/corsi/" + corsoId;
         }
 
-        // 2) Utente (recupera o crea)
-        Utente utente;
-        Optional<Utente> maybeUtente = utenteRepository.findByEmail(email);
-        if (maybeUtente.isPresent()) {
-            utente = maybeUtente.get();
-            if (nome != null && !nome.trim().isEmpty()
-                    && (utente.getNome() == null || !utente.getNome().equals(nome))) {
-                utente.setNome(nome);
-                utenteRepository.save(utente);
-            }
-        } else {
+        // 5) Utente (recupero/aggiornamento)
+        Utente utente = utenteRepository.findByEmail(email).orElse(null);
+        if (utente == null) {
             utente = new Utente();
-            utente.setNome(nome);
             utente.setEmail(email);
+            utente.setNome(nome);
             utente.setRuolo("UTENTE");
-            utente.setPassword("123456"); // provvisoria; da gestire quando faremo la security
+            utente.setPassword(passwordEncoder.encode("123456")); // placeholder finché non c'è registrazione
             utente = utenteRepository.save(utente);
+        } else if (utente.getNome() == null || !utente.getNome().equals(nome)) {
+            utente.setNome(nome);
+            utenteRepository.save(utente);
         }
 
-        // 3) Check duplicato e capienza *sotto lock*
+        // 6) Doppione + capienza (sotto lock)
         if (prenotazioneRepository.existsByUtenteAndCorso(utente, corso)) {
             redirectAttrs.addFlashAttribute("warning", "Sei già prenotato a questo corso.");
             return "redirect:/corsi/" + corsoId;
         }
-
         int prenotati = prenotazioneRepository.countByCorso(corso);
         if (prenotati >= corso.getMaxPosti()) {
             redirectAttrs.addFlashAttribute("error", "Corso al completo. Non è possibile prenotare.");
             return "redirect:/corsi/" + corsoId;
         }
 
-        // 4) Salva con rete di sicurezza sul vincolo unico
+        // 7) Salva con rete di sicurezza
         try {
             Prenotazione p = new Prenotazione(utente, corso);
             prenotazioneRepository.save(p);
-
-        } catch (DataIntegrityViolationException e) {
-            // Scatta se due richieste simultanee tentano di inserire la stessa prenotazione
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
             redirectAttrs.addFlashAttribute("warning", "Sei già prenotato a questo corso.");
             return "redirect:/corsi/" + corsoId;
         }

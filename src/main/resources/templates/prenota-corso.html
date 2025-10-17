@@ -43,7 +43,6 @@
                     <h5 class="mb-3">Completa la prenotazione</h5>
 
                     <form th:action="@{/prenotazioni}" method="post">
-                        <!-- id corso nascosto -->
                         <input type="hidden" name="corsoId" th:value="${corso.id}" />
 
                         <div class="mb-3">
@@ -51,16 +50,18 @@
                             <input class="form-control" type="text" name="nome" placeholder="Il tuo nome" required>
                         </div>
 
-                        <div class="mb-3">
-                            <label class="form-label">Email</label>
-                            <input class="form-control" type="email" name="email" placeholder="tuo@email.com" required>
-                        </div>
-
                         <div class="d-grid">
-                            <button type="submit" class="btn btn-success btn-lg"
-                                th:disabled="${postiDisponibili == 0}">Conferma prenotazione</button>
+                            <button type="submit" class="btn btn-success btn-lg" th:disabled="${postiDisponibili == 0}">
+                                Conferma prenotazione
+                            </button>
                         </div>
                     </form>
+
+                    <!-- se NON loggato, un avviso -->
+                    <div th:if="${#authorization.expression('!isAuthenticated()')}" class="alert alert-info mt-3">
+                        Per prenotare devi <a href="/login">accedere</a>.
+                    </div>
+
 
                     <div class="d-grid gap-2 mt-3">
                         <a href="/corsi" class="btn btn-outline-primary">Torna ai corsi</a>
