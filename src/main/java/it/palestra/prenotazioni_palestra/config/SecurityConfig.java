@@ -45,7 +45,7 @@ public class SecurityConfig {
                                                 .defaultSuccessUrl("/corsi", true))
                                 .logout(logout -> logout
                                                 .logoutUrl("/logout")
-                                                .logoutSuccessUrl("/home")
+                                                .logoutSuccessUrl("/home?logout")
                                                 .invalidateHttpSession(true)
                                                 .deleteCookies("JSESSIONID")
                                                 .permitAll())
