@@ -21,6 +21,15 @@
             </button>
         </div>
         <a href="/prenotazioni/mie" class="btn btn-outline-primary ms-2">Le mie prenotazioni</a>
+        <div class="ms-auto me-3">
+            <form th:if="${#authorization.expression('isAuthenticated()')}" th:action="@{/logout}" method="post"
+                class="d-inline">
+                <span class="text-light me-2" th:text="${#authentication.name}">utente@mail</span>
+                <button class="btn btn-sm btn-outline-light" type="submit">Logout</button>
+            </form>
+            <a th:if="${#authorization.expression('!isAuthenticated()')}" href="/login"
+                class="btn btn-sm btn-outline-light">Login</a>
+        </div>
 
     </nav>
 
