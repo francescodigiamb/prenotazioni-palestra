@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Corsi archiviati (PT)</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-light">
+    <div class="container py-5">
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="text-primary m-0">Corsi archiviati</h1>
+            <div class="d-flex gap-2">
+                <a href="/corsi" class="btn btn-outline-primary">Torna ai corsi</a>
+                <a href="/home" class="btn btn-outline-secondary">Home</a>
+            </div>
+        </div>
+
+        <div th:replace="~{fragments :: alerts}"></div>
+
+        <div th:if="${#lists.isEmpty(corsi)}" class="alert alert-info">
+            Nessun corso archiviato.
+        </div>
+
+        <div th:if="${!#lists.isEmpty(corsi)}" class="table-responsive">
+            <table class="table table-striped table-hover align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Nome</th>
+                        <th>Data</th>
+                        <th>Orario</th>
+                        <th>Iscritti</th>
+                        <th>Azioni</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="corso : ${corsi}">
+                        <td th:text="${corso.id}">1</td>
+                        <td th:text="${corso.nome}">Corso</td>
+                        <td th:text="${#temporals.format(corso.data, 'dd/MM/yyyy')}">01/09/2025</td>
+                        <td th:text="${#temporals.format(corso.orario, 'HH:mm')}">18:00</td>
+                        <td th:text="${prenotatiMap[corso.id]}">0</td>
+                        <td>
+                            <a class="btn btn-sm btn-outline-dark" th:href="@{/corsi/{id}(id=${corso.id})}">Dettagli</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

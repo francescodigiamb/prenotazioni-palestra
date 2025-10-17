@@ -29,12 +29,15 @@
                 <span class="text-light me-2" th:text="${#authentication.name}">utente@mail</span>
                 <button class="btn btn-sm btn-outline-light" type="submit">Logout</button>
             </form>
+            // Area ADMIN
+            <a th:if="${#authorization.expression('hasRole(''ADMIN'')')}" href="/admin/corsi-archiviati"
+                class="btn btn-outline-light ms-2">
+                Area Admin
+            </a>
 
             <!-- Se NON autenticato: mostra Login -->
             <a th:if="${#authorization.expression('!isAuthenticated()')}" href="/login"
                 class="btn btn-sm btn-outline-light">Login</a>
-        </div>
-
         </div>
 
     </nav>

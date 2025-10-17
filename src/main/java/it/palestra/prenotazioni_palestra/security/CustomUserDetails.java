@@ -17,7 +17,7 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        // ruolo è "UTENTE" o "ISTRUTTORE"
+        // ruolo è "UTENTE" o "ADMIN"
         return List.of(new SimpleGrantedAuthority("ROLE_" + utente.getRuolo()));
     }
 

@@ -38,7 +38,7 @@ public class SecurityConfig {
                                                                 "/js/**")
                                                 .permitAll()
                                                 .requestMatchers("/prenotazioni/**").authenticated()
-                                                // futuro: .requestMatchers("/admin/**").hasRole("ISTRUTTORE")
+                                                .requestMatchers("/admin/**").hasRole("ADMIN")
                                                 .anyRequest().permitAll())
                                 .formLogin(form -> form
                                                 .loginPage("/login").permitAll()
