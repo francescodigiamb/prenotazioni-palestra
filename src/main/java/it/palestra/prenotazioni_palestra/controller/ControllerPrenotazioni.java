@@ -82,6 +82,11 @@ public class ControllerPrenotazioni {
             redirectAttrs.addFlashAttribute("error", "Il corso è scaduto: non è più possibile prenotare.");
             return "redirect:/corsi/" + corsoId;
         }
+        // blocca se corsi chiusi
+        if (corso.isChiuso()) {
+            redirectAttrs.addFlashAttribute("warning", "Le prenotazioni per questo corso sono momentaneamente chiuse.");
+            return "redirect:/corsi/" + corsoId;
+        }
 
         // 5) Utente (recupero/aggiornamento)
         Utente utente = utenteRepository.findByEmail(email).orElse(null);

@@ -123,6 +123,12 @@ public class ControllerCorsi {
             return "redirect:/corsi/" + id;
         }
 
+        // ⛔ Blocca se chiuso
+        if (corso.isChiuso()) {
+            ra.addFlashAttribute("warning", "Le prenotazioni per questo corso sono momentaneamente chiuse.");
+            return "redirect:/corsi/" + id;
+        }
+
         int prenotati = prenotazioneRepository.countByCorso(corso);
         int postiDisponibili = Math.max(corso.getMaxPosti() - prenotati, 0);
 

@@ -84,9 +84,13 @@
                         <li><strong>Posti disponibili:</strong> <span th:text="${postiDisponibili}">12</span></li>
                         <li>
                             <strong>Stato:</strong>
-                            <span th:if="${postiDisponibili == 0}" class="badge bg-danger">Pieno</span>
-                            <span th:if="${postiDisponibili > 0}" class="badge bg-success">Disponibile</span>
+                            <span th:if="${corso.chiuso}" class="badge bg-secondary">Chiuso</span>
+                            <span th:if="${!corso.chiuso and postiDisponibili == 0}"
+                                class="badge bg-danger">Pieno</span>
+                            <span th:if="${!corso.chiuso and postiDisponibili > 0}"
+                                class="badge bg-success">Disponibile</span>
                         </li>
+
                         <!-- badge “Scaduto” se data/ora sono passate -->
                         <li>
                             <strong>Validità:</strong>

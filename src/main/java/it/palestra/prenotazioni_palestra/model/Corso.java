@@ -40,6 +40,9 @@ public class Corso {
     @Column(nullable = false)
     private int maxPosti;
 
+    @Column(nullable = false)
+    private boolean chiuso = false; // default
+
     // Costruttore
 
     public Corso() {
@@ -102,4 +105,11 @@ public class Corso {
         this.maxPosti = maxPosti;
     }
 
+    public boolean isChiuso() {
+        return chiuso;
+    }
+
+    public void setChiuso(boolean chiuso) {
+        this.chiuso = chiuso;
+    }
 }

@@ -50,30 +50,28 @@
                             <span th:text="${corso.maxPosti}">12</span>
                         </td>
 
-                        <!-- Badge disponibilità -->
+                        <!-- Badge disponibilità/stato -->
                         <td>
-                            <span th:if="${pienoMap[corso.id]}" class="badge bg-danger">Pieno</span>
-                            <span th:if="${!pienoMap[corso.id]}" class="badge bg-success"
-                                th:text="'Disponibili: ' + ${disponibiliMap[corso.id]}">Disponibili: 5</span>
+                            <span th:if="${corso.chiuso}" class="badge bg-secondary ms-2">Chiuso</span>
+                            <span th:if="${pienoMap[corso.id] and !corso.chiuso}"
+                                class="badge bg-danger ms-2">Pieno</span>
+                            <span th:if="${!pienoMap[corso.id] and !corso.chiuso}"
+                                class="badge bg-success ms-2">Disponibile</span>
                         </td>
 
                         <!-- Azioni: disabilita Prenota se pieno -->
                         <td>
                             <a class="btn btn-primary btn-sm" th:href="@{/corsi/{id}(id=${corso.id})}">Dettagli</a>
-                            <a class="btn btn-success btn-sm" th:classappend="${pienoMap[corso.id]} ? ' disabled' : ''"
-                                th:attr="aria-disabled=${pienoMap[corso.id]}" th:if="${#temporals.createNow().toLocalDate().isBefore(corso.data) 
-                                or (#temporals.createNow().toLocalDate().isEqual(corso.data) 
-                                and #temporals.createNow().toLocalTime().isBefore(corso.orario))}"
+
+                            <a class="btn btn-success btn-sm"
+                                th:classappend="${(pienoMap[corso.id] or corso.chiuso) ? ' disabled' : ''}"
+                                th:attr="aria-disabled=${pienoMap[corso.id] or corso.chiuso}"
                                 th:href="@{/corsi/{id}/prenota(id=${corso.id})}">
                                 Prenota
                             </a>
-                            <span class="badge bg-secondary" th:if="${#temporals.createNow().toLocalDate().isAfter(corso.data) 
-                                or (#temporals.createNow().toLocalDate().isEqual(corso.data) 
-                                and #temporals.createNow().toLocalTime().isAfter(corso.orario))}">
-                                Scaduto
-                            </span>
-
                         </td>
+
+
                     </tr>
                 </tbody>
             </table>
