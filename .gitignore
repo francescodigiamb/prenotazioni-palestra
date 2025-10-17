@@ -31,3 +31,5 @@ build/
 
 ### VS Code ###
 .vscode/
+/src/main/java/it/palestra/prenotazioni_palestra/security
+src/main/java/it/palestra/prenotazioni_palestra/security/SecurityConfiguration.java
