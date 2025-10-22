@@ -34,7 +34,8 @@ public class SecurityConfig {
                 http
                                 .authenticationProvider(authProvider())
                                 .authorizeHttpRequests(auth -> auth
-                                                .requestMatchers("/", "/home", "/corsi", "/corsi/*", "/login",
+                                                .requestMatchers("/", "/home", "/corsi", "/corsi/*", "/listino",
+                                                                "/login",
                                                                 "/register", "/css/**", "/js/**")
                                                 .permitAll()
                                                 .requestMatchers("/account/**").authenticated()

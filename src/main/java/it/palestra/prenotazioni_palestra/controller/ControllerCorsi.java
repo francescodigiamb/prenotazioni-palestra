@@ -4,15 +4,14 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import it.palestra.prenotazioni_palestra.model.Corso;
@@ -41,37 +40,43 @@ public class ControllerCorsi {
     }
 
     @GetMapping("/corsi")
-    public String listaCorsi(Model model) {
-        List<Corso> corsi;
+    public String listaCorsi(@RequestParam(value = "nome", required = false) String nome, Model model) {
+        List<Corso> tutti;
         try {
-            corsi = corsoRepository.findAll();
+            tutti = corsoRepository.findAll();
         } catch (Exception e) {
-            corsi = Collections.emptyList();
+            tutti = Collections.emptyList();
         }
 
-        // Filtro fuori i corsi scaduti
-        List<Corso> visibili = corsi.stream()
-                .filter(c -> !isExpired(c))
+        // Solo corsi futuri (niente scaduti)
+        var oggi = java.time.LocalDate.now();
+        var ora = java.time.LocalTime.now();
+        List<Corso> futuri = tutti.stream()
+                .filter(c -> c.getData().isAfter(oggi) ||
+                        (c.getData().isEqual(oggi) && c.getOrario().isAfter(ora)))
                 .toList();
 
-        // Calcoli per disponibilità sui corsi visibili
-        Map<Integer, Integer> prenotatiMap = new HashMap<>();
-        Map<Integer, Integer> disponibiliMap = new HashMap<>();
-        Map<Integer, Boolean> pienoMap = new HashMap<>();
-
-        for (Corso c : visibili) {
-            int pren = prenotazioneRepository.countByCorso(c);
-            int disp = Math.max(c.getMaxPosti() - pren, 0);
-            prenotatiMap.put(c.getId(), pren);
-            disponibiliMap.put(c.getId(), disp);
-            pienoMap.put(c.getId(), disp == 0);
+        // Filtro per nome (opzionale)
+        if (nome != null && !nome.isBlank()) {
+            futuri = futuri.stream()
+                    .filter(c -> c.getNome() != null && c.getNome().equalsIgnoreCase(nome.trim()))
+                    .toList();
+            model.addAttribute("filtroNome", nome.trim());
         }
 
-        model.addAttribute("corsi", visibili);
+        // Costruisci sempre le mappe per il template
+        java.util.Map<Integer, Integer> prenotatiMap = new java.util.HashMap<>();
+        java.util.Map<Integer, Boolean> pienoMap = new java.util.HashMap<>();
+        for (Corso c : futuri) {
+            int pren = prenotazioneRepository.countByCorso(c);
+            prenotatiMap.put(c.getId(), pren);
+            pienoMap.put(c.getId(), pren >= c.getMaxPosti());
+        }
+
+        model.addAttribute("corsi", futuri);
         model.addAttribute("prenotatiMap", prenotatiMap);
-        model.addAttribute("disponibiliMap", disponibiliMap);
         model.addAttribute("pienoMap", pienoMap);
-        return "corsi"; // templates/corsi.html
+        return "corsi";
     }
 
     // GET /corsi/{id} -> dettaglio corso con posti disponibili
@@ -136,6 +141,93 @@ public class ControllerCorsi {
         model.addAttribute("prenotati", prenotati);
         model.addAttribute("postiDisponibili", postiDisponibili);
         return "prenota-corso";
+    }
+
+    // helper per nome giorno in IT
+    private static String giornoIt(java.time.DayOfWeek dow) {
+        switch (dow) {
+            case MONDAY:
+                return "Lunedì";
+            case TUESDAY:
+                return "Martedì";
+            case WEDNESDAY:
+                return "Mercoledì";
+            case THURSDAY:
+                return "Giovedì";
+            case FRIDAY:
+                return "Venerdì";
+            case SATURDAY:
+                return "Sabato";
+            case SUNDAY:
+                return "Domenica";
+        }
+        return dow.name();
+    }
+
+    // DTO view per il catalogo
+    public static class SchedaCatalogo {
+        public String nome;
+        public String descrizione;
+        public java.util.List<String> slot = new java.util.ArrayList<>(); // es: "Martedì 19:00"
+        public Integer capienzaTipica; // maxPosti più frequente tra le future
+    }
+
+    @GetMapping("/catalogo")
+    public String catalogoCorsi(Model model) {
+        java.time.LocalDate oggi = java.time.LocalDate.now();
+
+        // Prendiamo SOLO occorrenze future/scadute oggi ma non ancora iniziate
+        java.util.List<it.palestra.prenotazioni_palestra.model.Corso> occorrenze = corsoRepository.findAll().stream()
+                .filter(c -> c.getData().isAfter(oggi) ||
+                        (c.getData().isEqual(oggi) && c.getOrario().isAfter(java.time.LocalTime.now())))
+                .toList();
+
+        // Raggruppa per nome corso
+        java.util.Map<String, java.util.List<it.palestra.prenotazioni_palestra.model.Corso>> byNome = occorrenze
+                .stream().collect(
+                        java.util.stream.Collectors.groupingBy(it.palestra.prenotazioni_palestra.model.Corso::getNome));
+
+        java.util.List<SchedaCatalogo> schede = new java.util.ArrayList<>();
+        for (var entry : byNome.entrySet()) {
+            String nome = entry.getKey();
+            var list = entry.getValue();
+
+            // descrizione: prendi la prima non vuota
+            String descr = list.stream()
+                    .map(it.palestra.prenotazioni_palestra.model.Corso::getDescrizione)
+                    .filter(s -> s != null && !s.isBlank())
+                    .findFirst().orElse("");
+
+            // slot unici: giorno della settimana + orario (ordinati)
+            java.util.Set<String> slotSet = new java.util.TreeSet<>();
+            for (var c : list) {
+                String s = giornoIt(c.getData().getDayOfWeek()) + " " +
+                        c.getOrario().toString().substring(0, 5); // HH:mm
+                slotSet.add(s);
+            }
+
+            // capienza tipica: moda dei maxPosti
+            java.util.Map<Integer, Long> countByCap = list.stream()
+                    .collect(java.util.stream.Collectors.groupingBy(
+                            it.palestra.prenotazioni_palestra.model.Corso::getMaxPosti,
+                            java.util.stream.Collectors.counting()));
+            Integer capTipica = countByCap.entrySet().stream()
+                    .max(java.util.Map.Entry.comparingByValue())
+                    .map(java.util.Map.Entry::getKey).orElse(null);
+
+            SchedaCatalogo s = new SchedaCatalogo();
+            s.nome = nome;
+            s.descrizione = descr;
+            s.capienzaTipica = capTipica;
+            s.slot = new java.util.ArrayList<>(slotSet);
+            schede.add(s);
+        }
+
+        // Ordina alfabetico per nome
+        schede.sort(java.util.Comparator.comparing(sc -> sc.nome.toLowerCase()));
+
+        model.addAttribute("schede", schede);
+        return "catalogo-corsi";
     }
 
 }

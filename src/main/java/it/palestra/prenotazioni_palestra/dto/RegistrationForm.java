@@ -1,4 +1,4 @@
-package it.palestra.prenotazioni_palestra.model;
+package it.palestra.prenotazioni_palestra.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

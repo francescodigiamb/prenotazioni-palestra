@@ -8,6 +8,76 @@
 </head>
 
 <body>
+    <!-- NAVBAR -->
+    <nav th:fragment="navbar" class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <!-- Logo -->
+            <a class="navbar-brand d-flex align-items-center" href="/home">
+                <img src="/img/logo-palestra.png" alt="FitnessClub" width="36" height="36" class="me-2">
+                <span>FitnessClub</span>
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain"
+                aria-controls="navbarMain" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarMain">
+                <!-- Left -->
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link"
+                            th:classappend="${#httpServletRequest != null and (#httpServletRequest.requestURI ?: '').startsWith('/catalogo')} ? ' active' : ''"
+                            href="/catalogo">Corsi</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link"
+                            th:classappend="${#httpServletRequest != null and (#httpServletRequest.requestURI ?: '').startsWith('/corsi')} ? ' active' : ''"
+                            href="/corsi">Prenota ora</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link"
+                            th:classappend="${#httpServletRequest != null and (#httpServletRequest.requestURI ?: '').startsWith('/listino')} ? ' active' : ''"
+                            href="/listino">Listino prezzi</a>
+                    </li>
+                </ul>
+
+                <!-- Right -->
+                <div class="d-flex align-items-center">
+                    <!-- Admin menu (solo ADMIN) -->
+                    <div class="dropdown me-2" th:if="${#authorization.expression('hasRole(''ADMIN'')')}">
+                        <button class="btn btn-outline-light btn-sm dropdown-toggle" type="button"
+                            data-bs-toggle="dropdown">
+                            Admin
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="/admin/corsi">Gestione corsi</a></li>
+                            <li><a class="dropdown-item" href="/admin/prenotazioni">Prenotazioni</a></li>
+                            <li><a class="dropdown-item" href="/admin/corsi-archiviati">Archiviati</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Auth controls -->
+                    <!-- Non autenticato -->
+                    <div th:if="${#authorization.expression('!isAuthenticated()')}">
+                        <a href="/login" class="btn btn-sm btn-outline-light me-2">Login</a>
+                        <a href="/register" class="btn btn-sm btn-primary">Registrati</a>
+                    </div>
+
+                    <!-- Autenticato -->
+                    <div th:if="${#authorization.expression('isAuthenticated()')}" class="d-flex align-items-center">
+                        <span class="text-light small me-2" th:text="${#authentication.name}">utente@mail</span>
+                        <form th:action="@{/logout}" method="post" class="d-inline">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                            <button class="btn btn-sm btn-outline-light" type="submit">Logout</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ALERT -->
     <div th:fragment="alerts">
         <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
         <div th:if="${warning}" class="alert alert-warning" th:text="${warning}"></div>

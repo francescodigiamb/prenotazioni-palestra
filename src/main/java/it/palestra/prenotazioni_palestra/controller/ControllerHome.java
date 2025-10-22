@@ -9,4 +9,9 @@ public class ControllerHome {
     public String home() {
         return "home"; // carica il file templates/home.html
     }
+
+    @GetMapping("/listino")
+    public String listino() {
+        return "listino"; // templates/listino.html
+    }
 }
