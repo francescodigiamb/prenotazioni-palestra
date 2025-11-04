@@ -2,33 +2,83 @@
 <html lang="it" xmlns:th="http://www.thymeleaf.org">
 
 <head>
-  <meta charset="UTF-8">
-  <title>Listino prezzi</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <th:block th:replace="~{fragments :: baseHead('Listino prezzi', null)}"></th:block>
 </head>
 
-<body class="bg-light">
+<body>
   <div th:replace="~{fragments :: navbar}"></div>
 
   <div class="container py-5">
-    <h1 class="text-primary mb-4">Listino prezzi</h1>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h1 class="text-dark m-0">Listino Prezzi</h1>
+      <div class="d-flex gap-2">
+        <a href="/home" class="btn btn-outline-secondary">Home</a>
+      </div>
+    </div>
 
     <div class="row g-4">
       <div class="col-12 col-lg-6">
         <div class="card shadow-sm">
           <div class="card-body">
-            <h5 class="card-title">Abbonamenti</h5>
+            <h5 class="card-title">Abbonamenti Studenti (quota iscrizione annuale €15)</h5>
             <ul class="list-group list-group-flush">
               <li class="list-group-item d-flex justify-content-between">
-                <span>Mensile</span><strong>€ 40</strong>
+                <span>Ingresso singolo</span><strong>€ 7</strong>
               </li>
               <li class="list-group-item d-flex justify-content-between">
-                <span>Trimestrale</span><strong>€ 110</strong>
+                <span>Mensile</span><strong>€ 50</strong>
               </li>
               <li class="list-group-item d-flex justify-content-between">
-                <span>Annuale</span><strong>€ 380</strong>
+                <span>Trimestrale</span><strong>€ 130</strong>
+              </li>
+              <li class="list-group-item d-flex justify-content-between">
+                <span>Semestrale</span><strong>€ 240</strong>
+              </li>
+              <li class="list-group-item d-flex justify-content-between">
+                <span>9 mesi</span><strong>€ 320</strong>
+              </li>
+              <li class="list-group-item d-flex justify-content-between">
+                <span>Annuale</span><strong>€ 370</strong>
+              </li>
+              <li class="list-group-item d-flex justify-content-between">
+                <span>10 ingressi</span><strong>€ 60</strong>
               </li>
             </ul>
+            <p class="text-muted small mt-3">Semestrale pagabile in 2 mesi consecutivi rec. 1 mese</p>
+            <p class="text-muted small mt-3">9 mesi/annuale pagabile in 3 mesi consecutivi rec. 2 mese</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 col-lg-6">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <h5 class="card-title">Abbonamenti (quota iscrizione annuale €15)</h5>
+            <ul class="list-group list-group-flush">
+              <li class="list-group-item d-flex justify-content-between">
+                <span>Ingresso singolo</span><strong>€ 9</strong>
+              </li>
+              <li class="list-group-item d-flex justify-content-between">
+                <span>Mensile</span><strong>€ 60</strong>
+              </li>
+              <li class="list-group-item d-flex justify-content-between">
+                <span>Trimestrale</span><strong>€ 155</strong>
+              </li>
+              <li class="list-group-item d-flex justify-content-between">
+                <span>Semestrale</span><strong>€ 265</strong>
+              </li>
+              <li class="list-group-item d-flex justify-content-between">
+                <span>9 mesi</span><strong>€ 360</strong>
+              </li>
+              <li class="list-group-item d-flex justify-content-between">
+                <span>Annuale</span><strong>€ 420</strong>
+              </li>
+              <li class="list-group-item d-flex justify-content-between">
+                <span>10 ingressi</span><strong>€ 70</strong>
+              </li>
+            </ul>
+            <p class="text-muted small mt-3">Semestrale pagabile in 2 mesi consecutivi rec. 1 mese</p>
+            <p class="text-muted small mt-3">9 mesi/annuale pagabile in 3 mesi consecutivi rec. 2 mese</p>
           </div>
         </div>
       </div>

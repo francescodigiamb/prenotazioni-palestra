@@ -2,19 +2,20 @@
 <html lang="it">
 
 <head>
-    <meta charset="UTF-8">
-    <title>Catalogo corsi</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <th:block th:replace="~{fragments :: baseHead('Catalogo Corsi', null)}"></th:block>
 </head>
 
-<body class="bg-light">
+<body>
+
+    <!-- NAVBAR -->
+    <div th:replace="~{fragments :: navbar}"></div>
     <div class="container py-5">
 
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1 class="text-primary m-0">Catalogo corsi</h1>
+            <h1 class="text-dark m-0">Catalogo corsi</h1>
             <div class="d-flex gap-2">
                 <a href="/home" class="btn btn-outline-secondary">Home</a>
-                <a href="/corsi" class="btn btn-outline-primary">Prenota ora</a>
+                <a href="/corsi" class="btn btn-outline-secondary">Prenota ora</a>
             </div>
         </div>
 
@@ -42,9 +43,7 @@
                                 th:text="'Capienza: ' + ${s.capienzaTipica}">
                                 Capienza: 12
                             </span>
-                            <a class="btn btn-success ms-auto" th:href="@{/corsi(nome=${s.nome})}">
-                                Prenota una data
-                            </a>
+
                         </div>
                     </div>
                 </div>

@@ -7,12 +7,94 @@
     <title>Palestra - Home</title>
     <!-- Bootstrap 5 CDN -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        /* ====== Colore sfondo (bianco sporco) ======
+       Regola qui il tono: #F6F3EA (default), alternative:
+       #F7F4ED (più chiaro) • #F3EEE4 (più caldo) • #EFEADE (più saturo)
+    */
+        :root {
+            --bg-offwhite: #F6F3EA;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background-color: var(--bg-offwhite);
+            /* Se vuoi tornare allo sfondo immagine, sostituisci la riga sopra con:
+         background: url('/img/sfondo-palestra.jpg') no-repeat center center fixed;
+         background-size: cover;
+      */
+        }
+
+        /* Wrapper centrale che tiene conto della navbar */
+        .central-wrapper {
+            position: relative;
+            min-height: calc(100vh - 72px);
+            /* ~altezza navbar bootstrap */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 40px;
+            /* spazio per le immagini laterali future */
+        }
+
+        /* Immagini laterali: predisposte ma nascoste finché non le metti */
+        .side-image {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            max-width: 320px;
+            width: 22vw;
+            /* responsive */
+            height: auto;
+            border-radius: 12px;
+            box-shadow: 0 8px 22px rgba(0, 0, 0, 0.18);
+            object-fit: cover;
+            display: none;
+            /* ← togli questa riga quando avrai le immagini */
+        }
+
+        .side-image.left {
+            left: 16px;
+        }
+
+        .side-image.right {
+            right: 16px;
+        }
+
+        /* Logo centrale */
+        .logo-central {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+        }
+
+        .logo-central img {
+            max-width: 400px;
+            width: 100%;
+            height: auto;
+            opacity: 0.98;
+        }
+
+        /* Mobile: nascondi comunque le laterali */
+        @media (max-width: 992px) {
+            .side-image {
+                display: none !important;
+            }
+
+            .logo-central img {
+                max-width: 300px;
+            }
+        }
+    </style>
 </head>
 
-<body class="bg-light">
+<body>
     <!-- NAVBAR -->
     <div th:replace="~{fragments :: navbar}"></div>
-
 
     <!-- Alert di logout -->
     <div th:if="${param.logout}" class="alert alert-success alert-dismissible fade show mt-3" role="alert">
@@ -20,13 +102,19 @@
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 
-    <!-- Hero section -->
-    <div class="container text-center mt-5">
-        <h1 class="mb-3">Benvenuto nella Palestra</h1>
-        <p class="lead">Allenati con noi e scopri i corsi disponibili!</p>
-        <a href="/catalogo" class="btn btn-primary">Scopri i corsi</a>
-    </div>
+    <!-- Contenuto centrale con predisposizione immagini laterali -->
+    <div class="central-wrapper">
+        <!-- Immagini laterali (aggiungi i file e rimuovi display:none sopra quando pronti) -->
+        <img src="/img/palestra-sx.jpg" alt="Palestra - sinistra" class="side-image left">
+        <img src="/img/palestra-dx.jpg" alt="Palestra - destra" class="side-image right">
 
+        <!-- Logo centrale -->
+        <div class="logo-central">
+            <img src="/img/logo-palestra.png" alt="FitnessClub">
+        </div>
+    </div>
+    <!-- FOOTER -->
+    <div th:replace="~{fragments :: footer}"></div>
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
