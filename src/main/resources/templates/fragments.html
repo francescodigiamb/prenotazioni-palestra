@@ -94,7 +94,7 @@
                     <!-- Non autenticato -->
                     <div th:if="${#authorization.expression('!isAuthenticated()')}">
                         <a href="/login" class="btn btn-sm btn-outline-light me-2">Login</a>
-                        <a href="/register" class="btn btn-sm btn-primary">Registrati</a>
+                        <a href="/register" class="btn btn-sm btn-info">Registrati</a>
                     </div>
 
                     <!-- Autenticato -->
