@@ -25,14 +25,14 @@ public class ControllerCorsi {
     private final PrenotazioneRepository prenotazioneRepository;
 
     // metodo per vedere se la tabella è da eliminare o meno in base alla data
-    private boolean isExpired(Corso c) {
-        LocalDate today = LocalDate.now();
-        if (c.getData().isBefore(today))
-            return true;
-        if (c.getData().isEqual(today) && c.getOrario().isBefore(LocalTime.now()))
-            return true;
-        return false;
-    }
+    // private boolean isExpired(Corso c) {
+    // LocalDate today = LocalDate.now();
+    // if (c.getData().isBefore(today))
+    // return true;
+    // if (c.getData().isEqual(today) && c.getOrario().isBefore(LocalTime.now()))
+    // return true;
+    // return false;
+    // }
 
     public ControllerCorsi(CorsoRepository corsoRepository, PrenotazioneRepository prenotazioneRepository) {
         this.corsoRepository = corsoRepository;
@@ -40,7 +40,10 @@ public class ControllerCorsi {
     }
 
     @GetMapping("/corsi")
-    public String listaCorsi(@RequestParam(value = "nome", required = false) String nome, Model model) {
+    public String listaCorsi(
+            @RequestParam(value = "nome", required = false) String nome,
+            Model model) {
+
         List<Corso> tutti;
         try {
             tutti = corsoRepository.findAll();
@@ -48,15 +51,23 @@ public class ControllerCorsi {
             tutti = Collections.emptyList();
         }
 
-        // Solo corsi futuri (niente scaduti)
-        var oggi = java.time.LocalDate.now();
-        var ora = java.time.LocalTime.now();
+        LocalDate oggi = LocalDate.now();
+        LocalTime ora = LocalTime.now();
+        LocalDate limite = oggi.plusWeeks(2); // 14 giorni da oggi
+
+        // Filtra: non scaduti e entro 14 giorni
         List<Corso> futuri = tutti.stream()
-                .filter(c -> c.getData().isAfter(oggi) ||
-                        (c.getData().isEqual(oggi) && c.getOrario().isAfter(ora)))
+                .filter(c -> {
+                    LocalDate d = c.getData();
+                    LocalTime t = c.getOrario();
+                    boolean nonScaduto = d.isAfter(oggi) ||
+                            (d.isEqual(oggi) && t.isAfter(ora));
+                    boolean entroLimite = !d.isAfter(limite);
+                    return nonScaduto && entroLimite;
+                })
                 .toList();
 
-        // Filtro per nome (opzionale)
+        // Filtro per nome corso (se arrivi da /catalogo?nome=Pilates)
         if (nome != null && !nome.isBlank()) {
             futuri = futuri.stream()
                     .filter(c -> c.getNome() != null && c.getNome().equalsIgnoreCase(nome.trim()))
@@ -64,9 +75,10 @@ public class ControllerCorsi {
             model.addAttribute("filtroNome", nome.trim());
         }
 
-        // Costruisci sempre le mappe per il template
-        java.util.Map<Integer, Integer> prenotatiMap = new java.util.HashMap<>();
-        java.util.Map<Integer, Boolean> pienoMap = new java.util.HashMap<>();
+        // Mappe per numero prenotati / corso pieno
+        var prenotatiMap = new java.util.HashMap<Integer, Integer>();
+        var pienoMap = new java.util.HashMap<Integer, Boolean>();
+
         for (Corso c : futuri) {
             int pren = prenotazioneRepository.countByCorso(c);
             prenotatiMap.put(c.getId(), pren);
@@ -76,6 +88,8 @@ public class ControllerCorsi {
         model.addAttribute("corsi", futuri);
         model.addAttribute("prenotatiMap", prenotatiMap);
         model.addAttribute("pienoMap", pienoMap);
+        model.addAttribute("maxGiorniPrenotazione", 14);
+
         return "corsi";
     }
 
@@ -116,30 +130,37 @@ public class ControllerCorsi {
 
     // pagina per il form di prenotazione corso
     @GetMapping("/corsi/{id}/prenota")
-    public String prenotaCorso(@PathVariable Integer id, Model model, RedirectAttributes ra) {
+    public String prenotaCorso(@PathVariable Integer id,
+            Model model,
+            RedirectAttributes ra) {
+
         Optional<Corso> maybeCorso = corsoRepository.findById(id);
-        if (!maybeCorso.isPresent())
-            throw new IllegalArgumentException("Corso non trovato: " + id);
+        if (!maybeCorso.isPresent()) {
+            ra.addFlashAttribute("error", "Corso non trovato.");
+            return "redirect:/corsi";
+        }
         Corso corso = maybeCorso.get();
 
-        // ⛔ Blocca se scaduto
-        if (isExpired(corso)) {
-            ra.addFlashAttribute("error", "Il corso è scaduto: non è più possibile prenotare.");
-            return "redirect:/corsi/" + id;
+        LocalDate oggi = LocalDate.now();
+        LocalDate limite = oggi.plusWeeks(2);
+
+        // Se il corso è oltre la finestra di prenotazione → blocca
+        if (corso.getData().isAfter(limite)) {
+            ra.addFlashAttribute("warning",
+                    "Puoi prenotare questo corso solo a partire da 14 giorni prima della data.");
+            return "redirect:/corsi";
         }
 
-        // ⛔ Blocca se chiuso
-        if (corso.isChiuso()) {
-            ra.addFlashAttribute("warning", "Le prenotazioni per questo corso sono momentaneamente chiuse.");
-            return "redirect:/corsi/" + id;
-        }
-
+        // Calcolo posti disponibili
         int prenotati = prenotazioneRepository.countByCorso(corso);
-        int postiDisponibili = Math.max(corso.getMaxPosti() - prenotati, 0);
+        int postiDisponibili = corso.getMaxPosti() - prenotati;
+        if (postiDisponibili < 0)
+            postiDisponibili = 0;
 
         model.addAttribute("corso", corso);
         model.addAttribute("prenotati", prenotati);
         model.addAttribute("postiDisponibili", postiDisponibili);
+
         return "prenota-corso";
     }
 

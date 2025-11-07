@@ -8,6 +8,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -42,6 +44,18 @@ public class Corso {
 
     @Column(nullable = false)
     private boolean chiuso = false; // default
+
+    @ManyToOne
+    @JoinColumn(name = "modello_id")
+    private ModelloCorso modello;
+
+    public ModelloCorso getModello() {
+        return modello;
+    }
+
+    public void setModello(ModelloCorso modello) {
+        this.modello = modello;
+    }
 
     // Costruttore
 

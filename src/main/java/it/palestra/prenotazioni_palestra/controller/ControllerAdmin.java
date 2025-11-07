@@ -1,13 +1,18 @@
 package it.palestra.prenotazioni_palestra.controller;
 
 import it.palestra.prenotazioni_palestra.model.Corso;
+import it.palestra.prenotazioni_palestra.model.ModelloCorso;
 import it.palestra.prenotazioni_palestra.model.Prenotazione;
 import it.palestra.prenotazioni_palestra.repository.CorsoRepository;
+import it.palestra.prenotazioni_palestra.repository.ModelloCorsoRepository;
 import it.palestra.prenotazioni_palestra.repository.PrenotazioneRepository;
+import it.palestra.prenotazioni_palestra.service.PianificazioneService;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,10 +29,17 @@ public class ControllerAdmin {
 
     private final CorsoRepository corsoRepository;
     private final PrenotazioneRepository prenotazioneRepository;
+    private final ModelloCorsoRepository modelloRepo;
+    private final PianificazioneService pianificazioneService;
 
-    public ControllerAdmin(CorsoRepository corsoRepository, PrenotazioneRepository prenotazioneRepository) {
+    // COSTRUTTORE
+    public ControllerAdmin(CorsoRepository corsoRepository, PrenotazioneRepository prenotazioneRepository,
+            ModelloCorsoRepository modelloRepo,
+            PianificazioneService pianificazioneService) {
         this.corsoRepository = corsoRepository;
         this.prenotazioneRepository = prenotazioneRepository;
+        this.modelloRepo = modelloRepo;
+        this.pianificazioneService = pianificazioneService;
     }
 
     private boolean isExpired(Corso c) {
@@ -260,6 +272,41 @@ public class ControllerAdmin {
         prenotazioneRepository.deleteById(id);
         ra.addFlashAttribute("success", "Prenotazione cancellata.");
         return "redirect:/admin/prenotazioni";
+    }
+
+    // MODELLI CORSI
+    // LISTA modelli
+    @GetMapping("/modelli")
+    public String listaModelli(Model model) {
+        model.addAttribute("modelli", modelloRepo.findAll());
+        return "admin-modelli";
+    }
+
+    // NUOVO modello
+    @GetMapping("/modelli/nuovo")
+    public String nuovoModello(Model model) {
+        model.addAttribute("modello", new ModelloCorso());
+        return "admin-modello-form";
+    }
+
+    // MODIFICA modello esistente
+    @GetMapping("/modelli/{id}/modifica")
+    public String modificaModello(@PathVariable Integer id, Model model, RedirectAttributes ra) {
+        ModelloCorso m = modelloRepo.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Modello non trovato: " + id));
+        model.addAttribute("modello", m);
+        return "admin-modello-form";
+    }
+
+    // CREA/AGGIORNA modello (UNICO POST)
+    @PostMapping("/modelli")
+    public String salvaModello(@ModelAttribute("modello") ModelloCorso modello,
+            RedirectAttributes ra) {
+
+        // se modello.id è null → insert, se non è null → update
+        modelloRepo.save(modello);
+        ra.addFlashAttribute("success", "Modello corso salvato.");
+        return "redirect:/admin/modelli";
     }
 
 }
