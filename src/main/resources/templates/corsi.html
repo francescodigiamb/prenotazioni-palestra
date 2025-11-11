@@ -22,61 +22,72 @@
             Nessun corso disponibile al momento.
         </div>
 
-        <!-- Tabella se ci sono corsi -->
-        <div th:if="${!corsi.isEmpty()}" class="table-responsive">
-            <table class="table table-striped table-hover align-middle">
-                <thead class="table-dark">
-                    <tr>
-                        <th>ID</th>
-                        <th>Nome</th>
-                        <th>Data</th>
-                        <th>Orario</th>
-                        <th>Capienza</th>
-                        <th>Disponibilità</th>
-                        <th>Azioni</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr th:each="corso : ${corsi}">
-                        <td th:text="${corso.id}">1</td>
-                        <td th:text="${corso.nome}">Nome corso</td>
-
-                        <!-- Formattazioni carine -->
-                        <td th:text="${#temporals.format(corso.data, 'dd/MM/yyyy')}">01/09/2025</td>
-                        <td th:text="${#temporals.format(corso.orario, 'HH:mm')}">18:00</td>
-
-                        <!-- Capienza attuale -->
-                        <td>
-                            <span th:text="${prenotatiMap[corso.id]}">0</span> /
-                            <span th:text="${corso.maxPosti}">12</span>
-                        </td>
-
-                        <!-- Badge disponibilità/stato -->
-                        <td>
-                            <span th:if="${corso.chiuso}" class="badge bg-secondary ms-2">Chiuso</span>
-                            <span th:if="${pienoMap[corso.id] and !corso.chiuso}"
-                                class="badge bg-danger ms-2">Pieno</span>
-                            <span th:if="${!pienoMap[corso.id] and !corso.chiuso}"
-                                class="badge bg-success ms-2">Disponibile</span>
-                        </td>
-
-                        <!-- Azioni: disabilita Prenota se pieno -->
-                        <td>
-                            <a class="btn btn-primary btn-sm" th:href="@{/corsi/{id}(id=${corso.id})}">Dettagli</a>
-
-                            <a class="btn btn-success btn-sm"
-                                th:classappend="${(pienoMap[corso.id] or corso.chiuso) ? ' disabled' : ''}"
-                                th:attr="aria-disabled=${pienoMap[corso.id] or corso.chiuso}"
-                                th:href="@{/corsi/{id}/prenota(id=${corso.id})}">
-                                Prenota
-                            </a>
-                        </td>
-
-
-                    </tr>
-                </tbody>
-            </table>
+        <!-- DESKTOP / TABLET: tabella -->
+        <div th:if="${!corsi.isEmpty()}" class="d-none d-md-block">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover align-middle mb-0">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>ID</th>
+                            <th>Nome</th>
+                            <th>Data</th>
+                            <th>Orario</th>
+                            <th>Posti max</th>
+                            <th>Azioni</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="corso : ${corsi}">
+                            <td th:text="${corso.id}">1</td>
+                            <td th:text="${corso.nome}">Nome corso</td>
+                            <td th:text="${#temporals.format(corso.data, 'dd/MM/yyyy')}">01/09/2025</td>
+                            <td th:text="${#temporals.format(corso.orario, 'HH:mm')}">18:00</td>
+                            <td th:text="${corso.maxPosti}">12</td>
+                            <td>
+                                <a class="btn btn-primary btn-sm me-1" th:href="@{|/corsi/${corso.id}|}">Dettagli</a>
+                                <a class="btn btn-success btn-sm" th:href="@{|/corsi/${corso.id}/prenota|}"
+                                    th:classappend="${pienoMap[corso.id]} ? ' disabled' : ''">
+                                    Prenota
+                                </a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
+
+        <!-- MOBILE: card verticali -->
+        <div th:if="${!corsi.isEmpty()}" class="d-block d-md-none">
+            <div class="card mb-3 shadow-sm" th:each="corso : ${corsi}">
+                <div class="card-body">
+                    <h5 class="card-title mb-1" th:text="${corso.nome}">Nome corso</h5>
+                    <p class="card-subtitle text-muted mb-2">
+                        <span th:text="${#temporals.format(corso.data, 'dd/MM/yyyy')}">01/09/2025</span>
+                        ·
+                        <span th:text="${#temporals.format(corso.orario, 'HH:mm')}">18:00</span>
+                    </p>
+
+                    <p class="mb-2 small">
+                        <strong>Posti:</strong>
+                        <span th:text="${prenotatiMap[corso.id]}">0</span>
+                        /
+                        <span th:text="${corso.maxPosti}">12</span>
+                    </p>
+
+                    <div class="d-flex flex-column gap-2">
+                        <a class="btn btn-outline-primary btn-sm w-100" th:href="@{|/corsi/${corso.id}|}">
+                            Dettagli
+                        </a>
+                        <a class="btn btn-success btn-sm w-100" th:href="@{|/corsi/${corso.id}/prenota|}"
+                            th:disabled="${pienoMap[corso.id]}">
+                            <span th:if="${!pienoMap[corso.id]}">Prenota</span>
+                            <span th:if="${pienoMap[corso.id]}">Corso al completo</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
 
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
