@@ -1,8 +1,10 @@
 package it.palestra.prenotazioni_palestra.controller;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -41,7 +43,7 @@ public class ControllerCorsi {
 
     @GetMapping("/corsi")
     public String listaCorsi(
-            @RequestParam(value = "nome", required = false) String nome,
+            @RequestParam(value = "q", required = false) String q,
             Model model) {
 
         List<Corso> tutti;
@@ -53,29 +55,46 @@ public class ControllerCorsi {
 
         LocalDate oggi = LocalDate.now();
         LocalTime ora = LocalTime.now();
-        LocalDate limite = oggi.plusWeeks(2); // 14 giorni da oggi
+        LocalDate limite = oggi.plusWeeks(2); // max 14 giorni
 
-        // Filtra: non scaduti e entro 14 giorni
+        // 1) filtro base: non scaduti + entro 14 giorni
         List<Corso> futuri = tutti.stream()
                 .filter(c -> {
                     LocalDate d = c.getData();
                     LocalTime t = c.getOrario();
-                    boolean nonScaduto = d.isAfter(oggi) ||
-                            (d.isEqual(oggi) && t.isAfter(ora));
+                    boolean nonScaduto = d.isAfter(oggi) || (d.isEqual(oggi) && t.isAfter(ora));
                     boolean entroLimite = !d.isAfter(limite);
                     return nonScaduto && entroLimite;
                 })
                 .toList();
 
-        // Filtro per nome corso (se arrivi da /catalogo?nome=Pilates)
-        if (nome != null && !nome.isBlank()) {
+        // 2) filtro di ricerca (se q presente)
+        String query = (q != null) ? q.trim().toLowerCase() : null;
+        if (query != null && !query.isEmpty()) {
+            DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
             futuri = futuri.stream()
-                    .filter(c -> c.getNome() != null && c.getNome().equalsIgnoreCase(nome.trim()))
+                    .filter(c -> {
+                        // nome corso
+                        boolean byName = c.getNome() != null &&
+                                c.getNome().toLowerCase().contains(query);
+
+                        // giorno settimana in italiano (lun, martedi, ecc.)
+                        String giornoIt = giornoSettimanaItaliano(c.getData().getDayOfWeek()).toLowerCase();
+                        boolean byGiorno = giornoIt.startsWith(query);
+
+                        // data formattata dd/MM/yyyy
+                        String dataStr = c.getData().format(fmt);
+                        boolean byData = dataStr.contains(query);
+
+                        return byName || byGiorno || byData;
+                    })
                     .toList();
-            model.addAttribute("filtroNome", nome.trim());
+
+            model.addAttribute("q", q);
         }
 
-        // Mappe per numero prenotati / corso pieno
+        // mappe prenotati / pieno
         var prenotatiMap = new java.util.HashMap<Integer, Integer>();
         var pienoMap = new java.util.HashMap<Integer, Boolean>();
 
@@ -91,6 +110,19 @@ public class ControllerCorsi {
         model.addAttribute("maxGiorniPrenotazione", 14);
 
         return "corsi";
+    }
+
+    // helper privato dentro ControllerCorsi
+    private String giornoSettimanaItaliano(DayOfWeek dow) {
+        return switch (dow) {
+            case MONDAY -> "Lunedì";
+            case TUESDAY -> "Martedì";
+            case WEDNESDAY -> "Mercoledì";
+            case THURSDAY -> "Giovedì";
+            case FRIDAY -> "Venerdì";
+            case SATURDAY -> "Sabato";
+            case SUNDAY -> "Domenica";
+        };
     }
 
     // GET /corsi/{id} -> dettaglio corso con posti disponibili

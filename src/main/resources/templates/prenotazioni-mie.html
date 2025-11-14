@@ -28,7 +28,7 @@
                 <table class="table table-striped table-hover align-middle mb-0">
                     <thead class="table-dark">
                         <tr>
-                            <th>ID</th>
+                            <!-- <th>ID</th> -->
                             <th>Corso</th>
                             <th>Data</th>
                             <th>Orario</th>
@@ -37,7 +37,7 @@
                     </thead>
                     <tbody>
                         <tr th:each="p : ${prenotazioni}">
-                            <td th:text="${p.id}">1</td>
+                            <!-- <td th:text="${p.id}">1</td> -->
                             <td th:text="${p.corso.nome}">Nome corso</td>
                             <td th:text="${#temporals.format(p.corso.data, 'dd/MM/yyyy')}">01/09/2025</td>
                             <td th:text="${#temporals.format(p.corso.orario, 'HH:mm')}">18:00</td>
@@ -58,16 +58,23 @@
             <div class="card mb-3 shadow-sm" th:each="p : ${prenotazioni}">
                 <div class="card-body">
                     <h5 class="card-title mb-1" th:text="${p.corso.nome}">Nome corso</h5>
+                    <div class="mb-2">
+                        <span class="badge" th:text="${statoMap[p.id]}" th:classappend="' bg-' + ${coloreMap[p.id]}">
+                            Valida
+                        </span>
+                    </div>
+
                     <p class="card-subtitle text-muted mb-2">
                         <span th:text="${#temporals.format(p.corso.data, 'dd/MM/yyyy')}">01/09/2025</span>
                         ·
                         <span th:text="${#temporals.format(p.corso.orario, 'HH:mm')}">18:00</span>
                     </p>
 
-                    <p class="small mb-3">
+                    <!-- <p class="small mb-3">
                         <strong>ID prenotazione:</strong>
                         <span th:text="${p.id}">1</span>
-                    </p>
+                    </p> -->
+                    <!-- badge “Scaduto” se data/ora sono passate -->
 
                     <form th:action="@{/prenotazioni/{id}/cancella(id=${p.id})}" method="post" class="d-grid">
                         <input type="hidden" name="email" th:value="${p.utente.email}" />

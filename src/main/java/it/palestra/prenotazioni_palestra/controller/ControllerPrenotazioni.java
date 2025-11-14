@@ -127,8 +127,39 @@ public class ControllerPrenotazioni {
         }
 
         List<Prenotazione> prenotazioni = prenotazioneRepository.findByUtente_Email(email.trim());
-        model.addAttribute("email", email.trim());
+        // >>> Badge di validità
+        var statoMap = new java.util.HashMap<Integer, String>(); // p.id -> "Valida"/"Oggi"/"Scaduta"
+        var coloreMap = new java.util.HashMap<Integer, String>(); // p.id -> "success"/"warning"/"secondary"
+
+        var today = java.time.LocalDate.now();
+        var now = java.time.LocalTime.now();
+
+        for (Prenotazione p : prenotazioni) {
+            var corso = p.getCorso();
+            if (corso == null)
+                continue;
+
+            var d = corso.getData();
+            var t = corso.getOrario();
+
+            boolean expired = d.isBefore(today) || (d.isEqual(today) && !t.isAfter(now));
+
+            if (expired) {
+                statoMap.put(p.getId(), "Scaduta");
+                coloreMap.put(p.getId(), "secondary");
+            } else if (d.isEqual(today)) {
+                statoMap.put(p.getId(), "Oggi");
+                coloreMap.put(p.getId(), "warning");
+            } else {
+                statoMap.put(p.getId(), "Valida");
+                coloreMap.put(p.getId(), "success");
+            }
+        }
+
+        model.addAttribute("email", email);
         model.addAttribute("prenotazioni", prenotazioni);
+        model.addAttribute("statoMap", statoMap);
+        model.addAttribute("coloreMap", coloreMap);
         return "prenotazioni-mie";
     }
 
