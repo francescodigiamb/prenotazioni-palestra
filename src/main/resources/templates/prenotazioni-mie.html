@@ -33,19 +33,28 @@
                             <th>Data</th>
                             <th>Orario</th>
                             <th>Azioni</th>
+                            <th>Stato</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr th:each="p : ${prenotazioni}">
                             <!-- <td th:text="${p.id}">1</td> -->
                             <td th:text="${p.corso.nome}">Nome corso</td>
-                            <td th:text="${#temporals.format(p.corso.data, 'dd/MM/yyyy')}">01/09/2025</td>
+                            <td th:text="${#temporals.format(p.corso.data, 'EEEE dd/MM/yyyy')}">lunedì 01/09/2025</td>
                             <td th:text="${#temporals.format(p.corso.orario, 'HH:mm')}">18:00</td>
                             <td>
                                 <form th:action="@{/prenotazioni/{id}/cancella(id=${p.id})}" method="post">
                                     <input type="hidden" name="email" th:value="${p.utente.email}" />
                                     <button type="submit" class="btn btn-danger btn-sm">Disdici</button>
                                 </form>
+                            </td>
+                            <td>
+                                <div class="mb-2">
+                                    <span class="badge" th:text="${statoMap[p.id]}"
+                                        th:classappend="' bg-' + ${coloreMap[p.id]}">
+                                        Valida
+                                    </span>
+                                </div>
                             </td>
                         </tr>
                     </tbody>
@@ -65,10 +74,11 @@
                     </div>
 
                     <p class="card-subtitle text-muted mb-2">
-                        <span th:text="${#temporals.format(p.corso.data, 'dd/MM/yyyy')}">01/09/2025</span>
+                        <span th:text="${#temporals.format(p.corso.data, 'EEEE dd/MM/yyyy')}">lunedì 01/09/2025</span>
                         ·
                         <span th:text="${#temporals.format(p.corso.orario, 'HH:mm')}">18:00</span>
                     </p>
+
 
                     <!-- <p class="small mb-3">
                         <strong>ID prenotazione:</strong>
