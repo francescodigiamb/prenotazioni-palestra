@@ -37,6 +37,18 @@ public class Utente {
     @Column(nullable = false)
     private String ruolo; // UTENTE o ISTRUTTORE
 
+    // flag per bloccare chi non ha verificato
+    @Column(nullable = false)
+    private boolean enabled = false; // per i nuovi utenti da registrazione
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+
     // Costruttori
     public Utente() {
     }
