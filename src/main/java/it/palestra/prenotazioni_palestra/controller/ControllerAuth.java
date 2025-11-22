@@ -3,6 +3,7 @@ package it.palestra.prenotazioni_palestra.controller;
 import it.palestra.prenotazioni_palestra.dto.RegistrationForm;
 import it.palestra.prenotazioni_palestra.model.Utente;
 import it.palestra.prenotazioni_palestra.repository.UtenteRepository;
+import it.palestra.prenotazioni_palestra.service.VerificationService;
 import jakarta.validation.Valid;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
@@ -16,10 +17,13 @@ public class ControllerAuth {
 
     private final UtenteRepository utenteRepository;
     private final PasswordEncoder passwordEncoder;
+    private final VerificationService verificationService;
 
-    public ControllerAuth(UtenteRepository utenteRepository, PasswordEncoder passwordEncoder) {
+    public ControllerAuth(UtenteRepository utenteRepository, PasswordEncoder passwordEncoder,
+            VerificationService verificationService) {
         this.utenteRepository = utenteRepository;
         this.passwordEncoder = passwordEncoder;
+        this.verificationService = verificationService;
     }
 
     @GetMapping("/login")
@@ -56,6 +60,9 @@ public class ControllerAuth {
         u.setPassword(passwordEncoder.encode(form.getPassword()));
         u.setRuolo("UTENTE");
         utenteRepository.save(u);
+
+        // 🔴 IMPORTANTE: chiamata qui
+        verificationService.sendVerification(u);
 
         ra.addFlashAttribute("success", "Registrazione completata! Ora puoi accedere.");
         return "redirect:/login";
