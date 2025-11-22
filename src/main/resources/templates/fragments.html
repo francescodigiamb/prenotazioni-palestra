@@ -128,10 +128,6 @@
         <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
         <div th:if="${warning}" class="alert alert-warning" th:text="${warning}"></div>
         <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
-        <!-- login fallito -->
-        <div th:if="${param.error}" class="alert alert-danger">
-            Credenziali non valide oppure account non ancora verificato.
-        </div>
     </div>
 
     <!-- FOOTER -->
