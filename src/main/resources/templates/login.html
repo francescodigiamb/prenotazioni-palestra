@@ -6,10 +6,27 @@
 </head>
 
 <body>
+    <!-- NAVBAR -->
+    <div th:replace="~{fragments :: navbar}"></div>
+
     <div class="container py-5" style="max-width:480px;">
         <h3 class="mb-4">Accedi</h3>
 
         <div th:replace="~{fragments :: alerts}"></div>
+
+        <!-- messaggio dopo logout -->
+        <div th:if="${param.logout}" class="alert alert-success">
+            Logout effettuato correttamente.
+        </div>
+
+        <!-- messaggio dopo registrazione (dal RedirectAttributes) -->
+        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+
+        <!-- login fallito -->
+        <div th:if="${param.error}" class="alert alert-danger">
+            Credenziali non valide oppure account non ancora verificato.
+        </div>
+
 
         <form method="post" th:action="@{/login}">
             <div class="mb-3">
@@ -22,6 +39,12 @@
             </div>
             <button class="btn btn-primary w-100" type="submit">Entra</button>
         </form>
+        <!-- Tasto Registrati -->
+        <div class="mt-3 text-center">
+            <span class="text-muted">Non hai ancora un account?</span>
+            <a href="/register">Registrati</a>
+        </div>
+
 
         <div class="mt-3">
             <a href="/" class="btn btn-outline-secondary w-100">Torna alla Home</a>
