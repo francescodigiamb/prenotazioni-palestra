@@ -94,20 +94,35 @@ public class ControllerCorsi {
             model.addAttribute("q", q);
         }
 
-        // mappe prenotati / pieno
-        var prenotatiMap = new java.util.HashMap<Integer, Integer>();
+        // mappe prenotati / stato capienza
+        var prenotatiMap = new java.util.HashMap<Integer, Integer>(); // totale (normali + riserva)
+        var prenotatiNormaliMap = new java.util.HashMap<Integer, Integer>();
+        var soloRiservaMap = new java.util.HashMap<Integer, Boolean>();
         var pienoMap = new java.util.HashMap<Integer, Boolean>();
 
+        int LIMITE_RISERVE = 6; // per ora fisso, come in ControllerPrenotazioni
+
         for (Corso c : futuri) {
-            int pren = prenotazioneRepository.countByCorso(c);
-            prenotatiMap.put(c.getId(), pren);
-            pienoMap.put(c.getId(), pren >= c.getMaxPosti());
+            int prenNormali = prenotazioneRepository.countByCorsoAndRiservaFalse(c);
+            int prenTotali = prenotazioneRepository.countByCorso(c);
+
+            prenotatiNormaliMap.put(c.getId(), prenNormali);
+            prenotatiMap.put(c.getId(), prenTotali);
+
+            boolean completoNormali = prenNormali >= c.getMaxPosti();
+            boolean completoConRiserve = prenTotali >= c.getMaxPosti() + LIMITE_RISERVE;
+
+            // può prenotare solo come riserva
+            soloRiservaMap.put(c.getId(), completoNormali && !completoConRiserve);
+            // corso davvero pieno (posti + riserve)
+            pienoMap.put(c.getId(), completoConRiserve);
         }
 
         model.addAttribute("corsi", futuri);
         model.addAttribute("prenotatiMap", prenotatiMap);
+        model.addAttribute("prenotatiNormaliMap", prenotatiNormaliMap);
+        model.addAttribute("soloRiservaMap", soloRiservaMap);
         model.addAttribute("pienoMap", pienoMap);
-        model.addAttribute("maxGiorniPrenotazione", 14);
 
         return "corsi";
     }
@@ -190,17 +205,34 @@ public class ControllerCorsi {
             return "redirect:/corsi";
         }
 
-        // Calcolo posti disponibili
-        int prenotati = prenotazioneRepository.countByCorso(corso);
-        int postiDisponibili = corso.getMaxPosti() - prenotati;
-        if (postiDisponibili < 0)
+        // Calcolo capienza: posti normali + riserve
+        int prenotatiNormali = prenotazioneRepository.countByCorsoAndRiservaFalse(corso);
+        int prenotatiTotali = prenotazioneRepository.countByCorso(corso);
+        int LIMITE_RISERVE = 6; // stesso valore di ControllerPrenotazioni
+
+        int postiDisponibili = corso.getMaxPosti() - prenotatiNormali;
+        if (postiDisponibili < 0) {
             postiDisponibili = 0;
+        }
+
+        int riserveDisponibili = corso.getMaxPosti() + LIMITE_RISERVE - prenotatiTotali;
+        if (riserveDisponibili < 0) {
+            riserveDisponibili = 0;
+        }
+
+        boolean soloRiserva = postiDisponibili == 0 && riserveDisponibili > 0;
+        boolean completamentePieno = riserveDisponibili == 0;
 
         model.addAttribute("corso", corso);
-        model.addAttribute("prenotati", prenotati);
+        model.addAttribute("prenotatiNormali", prenotatiNormali);
+        model.addAttribute("prenotatiTotali", prenotatiTotali);
         model.addAttribute("postiDisponibili", postiDisponibili);
+        model.addAttribute("riserveDisponibili", riserveDisponibili);
+        model.addAttribute("soloRiserva", soloRiserva);
+        model.addAttribute("completamentePieno", completamentePieno);
 
         return "prenota-corso";
+
     }
 
     // helper per nome giorno in IT

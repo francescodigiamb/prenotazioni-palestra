@@ -65,8 +65,12 @@
                                 <a class="btn btn-primary btn-sm me-1" th:href="@{|/corsi/${corso.id}|}">Dettagli</a>
                                 <a class="btn btn-success btn-sm" th:href="@{|/corsi/${corso.id}/prenota|}"
                                     th:classappend="${pienoMap[corso.id]} ? ' disabled' : ''">
-                                    Prenota
+                                    <span th:if="${pienoMap[corso.id]}">Corso al completo</span>
+                                    <span th:if="${!pienoMap[corso.id] and !soloRiservaMap[corso.id]}">Prenota</span>
+                                    <span th:if="${!pienoMap[corso.id] and soloRiservaMap[corso.id]}">Prenota
+                                        (riserva)</span>
                                 </a>
+
                             </td>
                         </tr>
                     </tbody>
@@ -87,19 +91,22 @@
 
 
                     <p class="mb-2 small">
-                        <strong>Posti:</strong>
-                        <span th:text="${prenotatiMap[corso.id]}">0</span>
+                        <strong>Posti (normali):</strong>
+                        <span th:text="${prenotatiNormaliMap[corso.id]}">0</span>
                         /
                         <span th:text="${corso.maxPosti}">12</span>
                     </p>
 
+
                     <div class="d-flex gap-2 mt-2">
                         <!-- Prenota: principale, largo -->
                         <a class="btn btn-success btn-sm flex-grow-1" th:href="@{|/corsi/${corso.id}/prenota|}"
-                            th:disabled="${pienoMap[corso.id]}">
-                            <span th:if="${!pienoMap[corso.id]}">Prenota</span>
+                            th:classappend="${pienoMap[corso.id]} ? ' disabled' : ''">
                             <span th:if="${pienoMap[corso.id]}">Corso al completo</span>
+                            <span th:if="${!pienoMap[corso.id] and !soloRiservaMap[corso.id]}">Prenota</span>
+                            <span th:if="${!pienoMap[corso.id] and soloRiservaMap[corso.id]}">Prenota (riserva)</span>
                         </a>
+
 
                         <!-- Dettagli: piccolo, a destra -->
                         <a class="btn btn-outline-secondary btn-sm" th:href="@{|/corsi/${corso.id}|}"

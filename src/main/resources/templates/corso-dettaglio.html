@@ -46,18 +46,26 @@
                         <table class="table table-striped table-hover align-middle">
                             <thead class="table-light">
                                 <tr>
-                                    <th>#</th>
+                                    <!-- <th>#</th> -->
                                     <th>Nome</th>
                                     <th>Email</th>
+                                    <th>Tipo</th>
                                     <th>Prenotato il</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr th:each="p, stat : ${prenotazioniCorso}">
-                                    <td th:text="${stat.index + 1}">1</td>
+                                    <!-- <td th:text="${stat.index + 1}">1</td> -->
                                     <td th:text="${p.utente != null ? p.utente.nome : 'N/D'}">Mario Rossi</td>
                                     <td th:text="${p.utente != null ? p.utente.email : 'N/D'}">mario@example.com</td>
 
+                                    <!-- Tipo prenotazione: normale o riserva -->
+                                    <td>
+                                        <span th:if="${!p.riserva}" class="badge bg-success">Confermato</span>
+                                        <span th:if="${p.riserva}" class="badge bg-warning text-dark">Riserva</span>
+                                    </td>
+
+                                    <!-- Data prenotazione + badge “Nuovo” nelle ultime 24h -->
                                     <td>
                                         <span
                                             th:text="${p.createdAt != null ? #temporals.format(p.createdAt, 'dd/MM/yyyy HH:mm') : '—'}">—</span>
@@ -67,6 +75,7 @@
                                 </tr>
                             </tbody>
                         </table>
+
                     </div>
                 </div>
             </div>
@@ -76,35 +85,56 @@
                 <div class="p-3 bg-white rounded shadow-sm">
                     <h5 class="mb-3">Informazioni</h5>
                     <ul class="list-unstyled mb-3">
-                        <li><strong>Data:</strong> <span
-                                th:text="${#temporals.format(corso.data, 'dd/MM/yyyy')}">01/09/2025</span></li>
-                        <li><strong>Orario:</strong> <span
-                                th:text="${#temporals.format(corso.orario, 'HH:mm')}">18:00</span></li>
-                        <li><strong>Posti totali:</strong> <span th:text="${corso.maxPosti}">12</span></li>
-                        <li><strong>Già prenotati:</strong> <span th:text="${prenotati}">0</span></li>
-                        <li><strong>Posti disponibili:</strong> <span th:text="${postiDisponibili}">12</span></li>
+                        <li><strong>Data:</strong>
+                            <span th:text="${#temporals.format(corso.data, 'dd/MM/yyyy')}">01/09/2025</span>
+                        </li>
+                        <li><strong>Orario:</strong>
+                            <span th:text="${#temporals.format(corso.orario, 'HH:mm')}">18:00</span>
+                        </li>
+
+                        <li><strong>Posti normali totali:</strong>
+                            <span th:text="${corso.maxPosti}">12</span>
+                        </li>
+
+                        <li><strong>Prenotati (posti normali):</strong>
+                            <span th:text="${prenotati}">0</span>
+                        </li>
+
+                        <li><strong>Prenotazioni in riserva:</strong>
+                            <span th:text="${prenotatiRiserve}">0</span>
+                        </li>
+
+                        <li><strong>Numero massimo riserve:</strong>
+                            <span th:text="${maxRiserve}">6</span>
+                        </li>
+
+                        <li><strong>Posti disponibili (posti normali):</strong>
+                            <span th:text="${postiDisponibili}">12</span>
+                        </li>
+
                         <li>
                             <strong>Stato:</strong>
                             <span th:if="${corso.chiuso}" class="badge bg-secondary">Chiuso</span>
                             <span th:if="${!corso.chiuso and postiDisponibili == 0}"
                                 class="badge bg-danger">Pieno</span>
                             <span th:if="${!corso.chiuso and postiDisponibili > 0}"
-                                class="badge bg-success">Disponibile</span>
+                                class="badge bg-success">Aperto</span>
                         </li>
 
-                        <!-- badge “Scaduto” se data/ora sono passate -->
+                        <!-- badge “Scaduto” / “Valido” in base a data/ora -->
                         <li>
                             <strong>Validità:</strong>
                             <span th:if="${#temporals.createNow().toLocalDate().isAfter(corso.data) 
-                                        or (#temporals.createNow().toLocalDate().isEqual(corso.data) 
-                                        and #temporals.createNow().toLocalTime().isAfter(corso.orario))}"
+                    or (#temporals.createNow().toLocalDate().isEqual(corso.data) 
+                    and #temporals.createNow().toLocalTime().isAfter(corso.orario))}"
                                 class="badge bg-secondary">Scaduto</span>
                             <span th:if="${#temporals.createNow().toLocalDate().isBefore(corso.data) 
-                                or (#temporals.createNow().toLocalDate().isEqual(corso.data) 
-                                and #temporals.createNow().toLocalTime().isBefore(corso.orario))}"
+                    or (#temporals.createNow().toLocalDate().isEqual(corso.data) 
+                    and #temporals.createNow().toLocalTime().isBefore(corso.orario))}"
                                 class="badge bg-success">Valido</span>
                         </li>
                     </ul>
+
                     <!-- Bottoni di ritorno (anche qui, per comodità) -->
                     <!-- <div class="d-grid gap-2 mt-3">
                         <a href="/corsi" class="btn btn-outline-primary">Torna ai corsi</a>

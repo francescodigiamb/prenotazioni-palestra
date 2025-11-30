@@ -29,9 +29,19 @@
                                 th:text="${#temporals.format(corso.data, 'dd/MM/yyyy')}">01/09/2025</span></li>
                         <li><strong>Orario:</strong> <span
                                 th:text="${#temporals.format(corso.orario, 'HH:mm')}">18:00</span></li>
-                        <li><strong>Posti totali:</strong> <span th:text="${corso.maxPosti}">12</span></li>
-                        <li><strong>Già prenotati:</strong> <span th:text="${prenotati}">0</span></li>
-                        <li><strong>Posti disponibili:</strong> <span th:text="${postiDisponibili}">12</span></li>
+                        <li><strong>Posti normali:</strong>
+                            <span th:text="${corso.maxPosti}">12</span>
+                        </li>
+                        <li><strong>Prenotati (posti normali):</strong>
+                            <span th:text="${prenotatiNormali}">0</span>
+                        </li>
+                        <li><strong>Posti normali disponibili:</strong>
+                            <span th:text="${postiDisponibili}">12</span>
+                        </li>
+                        <li><strong>Riserve disponibili:</strong>
+                            <span th:text="${riserveDisponibili}">6</span>
+                        </li>
+
                     </ul>
                 </div>
             </div>
@@ -50,9 +60,11 @@
                         </div>
 
                         <div class="d-grid">
-                            <button type="submit" class="btn btn-success btn-lg" th:disabled="${postiDisponibili == 0}">
-                                Conferma prenotazione
+                            <button type="submit" class="btn btn-success btn-lg" th:disabled="${completamentePieno}">
+                                <span th:if="${!soloRiserva}">Conferma prenotazione</span>
+                                <span th:if="${soloRiserva}">Conferma prenotazione (verrai inserito come riserva)</span>
                             </button>
+
                         </div>
                     </form>
 
