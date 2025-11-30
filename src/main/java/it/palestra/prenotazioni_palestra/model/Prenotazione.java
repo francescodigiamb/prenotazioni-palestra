@@ -35,6 +35,9 @@ public class Prenotazione {
             createdAt = LocalDateTime.now();
     }
 
+    @Column(nullable = false)
+    private boolean riserva = false;
+
     // Costruttori
     public Prenotazione() {
     }
@@ -71,5 +74,13 @@ public class Prenotazione {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public boolean isRiserva() {
+        return riserva;
+    }
+
+    public void setRiserva(boolean riserva) {
+        this.riserva = riserva;
     }
 }

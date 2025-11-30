@@ -37,4 +37,12 @@ public interface PrenotazioneRepository extends JpaRepository<Prenotazione, Inte
 
     void deleteByCorso(Corso corso);
 
+    int countByCorsoAndRiservaFalse(Corso corso);
+
+    int countByCorsoAndRiservaTrue(Corso corso);
+
+    List<Prenotazione> findByCorsoAndRiservaFalse(Corso corso);
+
+    List<Prenotazione> findByCorsoAndRiservaTrue(Corso corso);
+
 }

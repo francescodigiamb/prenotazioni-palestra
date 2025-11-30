@@ -50,10 +50,14 @@
                             </td>
                             <td>
                                 <div class="mb-2">
-                                    <span class="badge" th:text="${statoMap[p.id]}"
+                                    <!-- Se riserva -->
+                                    <span th:if="${p.riserva}" class="badge bg-warning text-dark">In attesa</span>
+
+                                    <!-- Se NON riserva -->
+                                    <span th:if="${!p.riserva}" class="badge" th:text="${statoMap[p.id]}"
                                         th:classappend="' bg-' + ${coloreMap[p.id]}">
-                                        Valida
                                     </span>
+
                                 </div>
                             </td>
                         </tr>
@@ -68,6 +72,9 @@
                 <div class="card-body">
                     <h5 class="card-title mb-1" th:text="${p.corso.nome}">Nome corso</h5>
                     <div class="mb-2">
+                        <span th:if="${p.riserva}" class="badge bg-warning text-dark">In attesa</span>
+                        <span th:if="${!p.riserva}" class="badge" th:text="${statoMap[p.id]}"
+                            th:classappend="' bg-' + ${coloreMap[p.id]}"></span>
                         <span class="badge" th:text="${statoMap[p.id]}" th:classappend="' bg-' + ${coloreMap[p.id]}">
                             Valida
                         </span>

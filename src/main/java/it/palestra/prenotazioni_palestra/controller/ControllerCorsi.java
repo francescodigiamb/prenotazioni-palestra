@@ -130,32 +130,39 @@ public class ControllerCorsi {
     public String dettaglioCorso(@PathVariable Integer id, Model model) {
 
         // 1) Carico il corso dall'id
-        Optional<Corso> nomeCorso = corsoRepository.findById(id);
-        if (!nomeCorso.isPresent()) {
+        Corso corso = corsoRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Corso non trovato: " + id));
 
-            throw new IllegalArgumentException("Corso non trovato: " + id);
-        }
-        Corso corso = nomeCorso.get();
+        // 2) Conteggio prenotazioni NORMALI (non riserva)
+        int prenotatiNormali = prenotazioneRepository.countByCorsoAndRiservaFalse(corso);
 
-        // 2) Conteggio prenotazioni per questo corso
-        int prenotati = prenotazioneRepository.countByCorso(corso);
-        // 3) Calcolo posti disponibili (non sotto zero)
+        // (opzionale ma utile) Conteggio prenotazioni in RISERVA
+        int prenotatiRiserve = prenotazioneRepository.countByCorsoAndRiservaTrue(corso);
+
+        // 3) Calcolo posti disponibili (solo posti normali, non conto le riserve)
         int postiTotali = corso.getMaxPosti();
-        int postiDisponibili = postiTotali - prenotati;
+        int postiDisponibili = postiTotali - prenotatiNormali;
         if (postiDisponibili < 0) {
             postiDisponibili = 0;
         }
-        // 🔽 ORDINATO PER DATA (più recente in alto)
+
+        // 4) Elenco prenotazioni, ordinate per data (più recenti in alto)
         List<Prenotazione> prenotazioniCorso = prenotazioneRepository.findByCorsoOrderByCreatedAtDesc(corso);
 
         // Per badge “Nuovo” nelle ultime 24h
         LocalDateTime nowMinus24h = LocalDateTime.now().minusHours(24);
-        // 4) Aggiungo attributi al model per Thymeleaf
+
+        // 5) Aggiungo attributi al model per Thymeleaf
         model.addAttribute("corso", corso);
-        model.addAttribute("prenotati", prenotati);
+        // qui "prenotati" ora significa SOLO prenotazioni normali
+        model.addAttribute("prenotati", prenotatiNormali);
         model.addAttribute("postiDisponibili", postiDisponibili);
         model.addAttribute("prenotazioniCorso", prenotazioniCorso);
         model.addAttribute("nowMinus24h", nowMinus24h);
+
+        // extra info su riserve (se vuoi usarle nel template dopo)
+        model.addAttribute("prenotatiRiserve", prenotatiRiserve);
+        model.addAttribute("maxRiserve", 6);
 
         return "corso-dettaglio";
     }

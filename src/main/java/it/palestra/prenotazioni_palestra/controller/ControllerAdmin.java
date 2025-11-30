@@ -64,7 +64,8 @@ public class ControllerAdmin {
 
         Map<Integer, Integer> prenotatiMap = new java.util.HashMap<>();
         for (Corso c : tutti) {
-            prenotatiMap.put(c.getId(), prenotazioneRepository.countByCorso(c));
+            prenotatiMap.put(c.getId(), prenotazioneRepository.countByCorsoAndRiservaFalse(c));
+
         }
 
         model.addAttribute("corsi", tutti);
@@ -90,6 +91,41 @@ public class ControllerAdmin {
         return "redirect:/admin/corsi";
     }
 
+    @GetMapping("/corsi/{id}")
+    public String adminDettaglioCorso(@PathVariable Integer id, Model model) {
+
+        // 1) Carico il corso
+        Corso corso = corsoRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Corso non trovato: " + id));
+
+        // 2) Divido le prenotazioni:
+        // - confermati = riserva = false
+        // - riserve = riserva = true
+        List<Prenotazione> confermati = prenotazioneRepository.findByCorsoAndRiservaFalse(corso);
+        List<Prenotazione> riserve = prenotazioneRepository.findByCorsoAndRiservaTrue(corso);
+
+        // 3) Conteggi utili (se vuoi mostrarli)
+        int prenotatiNormali = confermati.size();
+        int prenotatiInAttesa = riserve.size();
+
+        int postiTotali = corso.getMaxPosti();
+        int postiDisponibili = postiTotali - prenotatiNormali;
+        if (postiDisponibili < 0) {
+            postiDisponibili = 0;
+        }
+
+        // 4) Aggiungo al model
+        model.addAttribute("corso", corso);
+        model.addAttribute("confermati", confermati);
+        model.addAttribute("riserve", riserve);
+        model.addAttribute("prenotatiNormali", prenotatiNormali);
+        model.addAttribute("prenotatiInAttesa", prenotatiInAttesa);
+        model.addAttribute("postiTotali", postiTotali);
+        model.addAttribute("postiDisponibili", postiDisponibili);
+
+        return "admin-corso-dettaglio"; // il template che mostra i dettagli per l'admin
+    }
+
     // CORSI ARCHIVIATI
     @GetMapping("/corsi-archiviati")
     public String corsiArchiviati(Model model) {
@@ -104,7 +140,8 @@ public class ControllerAdmin {
 
         Map<Integer, Integer> prenotatiMap = new HashMap<>();
         for (Corso c : archiviati) {
-            prenotatiMap.put(c.getId(), prenotazioneRepository.countByCorso(c));
+            prenotatiMap.put(c.getId(), prenotazioneRepository.countByCorsoAndRiservaFalse(c));
+
         }
 
         model.addAttribute("corsi", archiviati);
@@ -307,6 +344,60 @@ public class ControllerAdmin {
         modelloRepo.save(modello);
         ra.addFlashAttribute("success", "Modello corso salvato.");
         return "redirect:/admin/modelli";
+    }
+
+    // GENERA OCCORRENZE (CORSI) A PARTIRE DA UN MODELLO
+    @PostMapping("/modelli/{id}/genera")
+    public String generaCorsiDaModello(
+            @PathVariable("id") Integer id,
+            @RequestParam("dal") String dalStr,
+            @RequestParam("al") String alStr,
+            RedirectAttributes ra) {
+
+        LocalDate dal = LocalDate.parse(dalStr);
+        LocalDate al = LocalDate.parse(alStr);
+
+        if (al.isBefore(dal)) {
+            ra.addFlashAttribute("error", "La data di fine deve essere successiva o uguale alla data di inizio.");
+            return "redirect:/admin/modelli";
+        }
+
+        int creati = pianificazioneService.generaOccorrenze(id, dal, al);
+
+        if (creati > 0) {
+            ra.addFlashAttribute("success",
+                    "Generati " + creati + " corsi dal " + dal + " al " + al + ".");
+        } else {
+            ra.addFlashAttribute("info",
+                    "Nessun corso generato: controlla i giorni/orari abilitati nel modello.");
+        }
+
+        return "redirect:/admin/modelli";
+    }
+
+    // PROMUOVI RISERVA
+    @PostMapping("/admin/corsi/{id}/promuovi")
+    public String promuoviRiserva(@PathVariable Integer id,
+            @RequestParam("prenotazioneId") Integer prenotazioneId,
+            RedirectAttributes ra) {
+
+        Corso corso = corsoRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Corso non trovato"));
+
+        int prenNormali = prenotazioneRepository.countByCorsoAndRiservaFalse(corso);
+        if (prenNormali >= corso.getMaxPosti()) {
+            ra.addFlashAttribute("error", "Nessun posto normale disponibile.");
+            return "redirect:/admin/corsi/" + id;
+        }
+
+        Prenotazione p = prenotazioneRepository.findById(prenotazioneId)
+                .orElseThrow(() -> new IllegalArgumentException("Prenotazione non trovata"));
+
+        p.setRiserva(false);
+        prenotazioneRepository.save(p);
+
+        ra.addFlashAttribute("success", "Prenotazione promossa dalla lista d'attesa.");
+        return "redirect:/admin/corsi/" + id;
     }
 
 }

@@ -93,18 +93,38 @@ public class ControllerPrenotazioni {
         }
 
         // 6) Capienza
-        int prenotati = prenotazioneRepository.countByCorso(corso);
-        if (prenotati >= corso.getMaxPosti()) {
-            redirectAttrs.addFlashAttribute("error", "Corso al completo. Non è possibile prenotare.");
+        int prenotatiNormali = prenotazioneRepository.countByCorsoAndRiservaFalse(corso);
+        int prenotatiTotali = prenotazioneRepository.countByCorso(corso);
+        int LIMITE_RISERVE = 6;
+
+        // 1) Se ci sono ancora posti normali
+        if (prenotatiNormali < corso.getMaxPosti()) {
+            // prenotazione normale
+            Prenotazione p = new Prenotazione(utente, corso);
+            p.setRiserva(false);
+            prenotazioneRepository.save(p);
+
+            redirectAttrs.addFlashAttribute("success", "Prenotazione confermata!");
             return "redirect:/corsi/" + corsoId;
         }
 
-        // 7) Salva
-        Prenotazione p = new Prenotazione(utente, corso);
-        prenotazioneRepository.save(p);
+        // 2) Se posti normali finiscono ma riserve NON sono piene
 
-        redirectAttrs.addFlashAttribute("success", "Prenotazione effettuata con successo!");
+        if (prenotatiTotali < corso.getMaxPosti() + LIMITE_RISERVE) {
+            // prenotazione in riserva
+            Prenotazione p = new Prenotazione(utente, corso);
+            p.setRiserva(true);
+            prenotazioneRepository.save(p);
+
+            redirectAttrs.addFlashAttribute("warning",
+                    "Il corso è pieno: sei stato inserito in lista d'attesa (In attesa).");
+            return "redirect:/corsi/" + corsoId;
+        }
+
+        // 3) Se anche le riserve sono piene → KO
+        redirectAttrs.addFlashAttribute("error", "Il corso è al completo.");
         return "redirect:/corsi/" + corsoId;
+
     }
 
     // ====== LE MIE PRENOTAZIONI (GET) ======
