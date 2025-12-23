@@ -45,7 +45,18 @@ public class SecurityConfig {
 
                                 .formLogin(form -> form
                                                 .loginPage("/login").permitAll()
-                                                .defaultSuccessUrl("/corsi", true))
+                                                .successHandler((request, response, authentication) -> {
+                                                        boolean isAdmin = authentication.getAuthorities().stream()
+                                                                        .anyMatch(a -> a.getAuthority()
+                                                                                        .equals("ROLE_ADMIN"));
+
+                                                        if (isAdmin) {
+                                                                response.sendRedirect("/admin/corsi");
+                                                        } else {
+                                                                response.sendRedirect("/corsi");
+                                                        }
+                                                }))
+
                                 .logout(logout -> logout
                                                 .logoutUrl("/logout")
                                                 .logoutSuccessUrl("/home?logout")

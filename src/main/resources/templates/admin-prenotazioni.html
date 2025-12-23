@@ -42,8 +42,6 @@
             </div>
         </form>
 
-        <p class="text-muted">Filtro: <span th:text="${filtro}">Tutte</span></p>
-
         <div th:if="${#lists.isEmpty(prenotazioni)}" class="alert alert-info">
             Nessuna prenotazione trovata.
         </div>
