@@ -376,7 +376,7 @@ public class ControllerAdmin {
     }
 
     // PROMUOVI RISERVA
-    @PostMapping("/admin/corsi/{id}/promuovi")
+    @PostMapping("/corsi/{id}/promuovi")
     public String promuoviRiserva(@PathVariable Integer id,
             @RequestParam("prenotazioneId") Integer prenotazioneId,
             RedirectAttributes ra) {
@@ -387,7 +387,7 @@ public class ControllerAdmin {
         int prenNormali = prenotazioneRepository.countByCorsoAndRiservaFalse(corso);
         if (prenNormali >= corso.getMaxPosti()) {
             ra.addFlashAttribute("error", "Nessun posto normale disponibile.");
-            return "redirect:/admin/corsi/" + id;
+            return "redirect:/admin/prenotazioni?corsoId=" + id;
         }
 
         Prenotazione p = prenotazioneRepository.findById(prenotazioneId)
@@ -397,7 +397,7 @@ public class ControllerAdmin {
         prenotazioneRepository.save(p);
 
         ra.addFlashAttribute("success", "Prenotazione promossa dalla lista d'attesa.");
-        return "redirect:/admin/corsi/" + id;
+        return "redirect:/admin/prenotazioni?corsoId=" + id;
     }
 
 }

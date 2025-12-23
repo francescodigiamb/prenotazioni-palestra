@@ -95,7 +95,7 @@
 
                         <!-- 👇 Pulsante visibile SOLO se l'utente è autenticato -->
                         <a href="/prenotazioni/mie" class="btn btn-outline-light btn-sm"
-                            sec:authorize="isAuthenticated()">
+                            sec:authorize="isAuthenticated() and !hasRole('ADMIN')">
                             Le mie prenotazioni
                         </a>
 

@@ -8,6 +8,8 @@
 </head>
 
 <body>
+    <div th:replace="~{fragments :: navbar}"></div>
+
     <div class="container py-5" style="max-width: 800px;">
 
         <h2 class="mb-4" th:text="${corso.id} != null ? 'Modifica corso' : 'Nuovo corso'">Corso</h2>
