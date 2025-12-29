@@ -296,12 +296,38 @@ public class ControllerAdmin {
             model.addAttribute("filtro", "Tutte");
         }
 
-        // opzionale: ordina per corso/data/ora
-        prenotazioni.sort((a, b) -> {
-            int cmp = a.getCorso().getData().compareTo(b.getCorso().getData());
-            if (cmp != 0)
-                return -cmp; // desc
-            return -a.getCorso().getOrario().compareTo(b.getCorso().getOrario()); // desc
+        // Ordine: corso (data/ora desc), poi confermati prima delle riserve, poi
+        // createdAt (più vecchi prima)
+        Collections.sort(prenotazioni, new Comparator<Prenotazione>() {
+            @Override
+            public int compare(Prenotazione p1, Prenotazione p2) {
+
+                // 1) data corso DESC
+                int cmpData = p2.getCorso().getData().compareTo(p1.getCorso().getData());
+                if (cmpData != 0)
+                    return cmpData;
+
+                // 2) orario corso DESC
+                int cmpOra = p2.getCorso().getOrario().compareTo(p1.getCorso().getOrario());
+                if (cmpOra != 0)
+                    return cmpOra;
+
+                // 3) confermati prima delle riserve
+                if (p1.isRiserva() && !p2.isRiserva())
+                    return 1;
+                if (!p1.isRiserva() && p2.isRiserva())
+                    return -1;
+
+                // 4) createdAt (più vecchi prima)
+                if (p1.getCreatedAt() == null && p2.getCreatedAt() == null)
+                    return 0;
+                if (p1.getCreatedAt() == null)
+                    return -1;
+                if (p2.getCreatedAt() == null)
+                    return 1;
+
+                return p1.getCreatedAt().compareTo(p2.getCreatedAt());
+            }
         });
 
         model.addAttribute("prenotazioni", prenotazioni);

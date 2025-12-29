@@ -161,8 +161,31 @@ public class ControllerCorsi {
             postiDisponibili = 0;
         }
 
-        // 4) Elenco prenotazioni, ordinate per data (più recenti in alto)
-        List<Prenotazione> prenotazioniCorso = prenotazioneRepository.findByCorsoOrderByCreatedAtDesc(corso);
+        // 4) Elenco prenotazioni (prima confermati, poi riserve; dentro: più vecchie
+        // prima)
+        List<Prenotazione> prenotazioniCorso = prenotazioneRepository.findByCorso(corso);
+
+        Collections.sort(prenotazioniCorso, new java.util.Comparator<Prenotazione>() {
+            @Override
+            public int compare(Prenotazione p1, Prenotazione p2) {
+
+                // Confermati prima delle riserve
+                if (p1.isRiserva() && !p2.isRiserva())
+                    return 1;
+                if (!p1.isRiserva() && p2.isRiserva())
+                    return -1;
+
+                // Ordine per createdAt (più vecchi prima)
+                if (p1.getCreatedAt() == null && p2.getCreatedAt() == null)
+                    return 0;
+                if (p1.getCreatedAt() == null)
+                    return -1;
+                if (p2.getCreatedAt() == null)
+                    return 1;
+
+                return p1.getCreatedAt().compareTo(p2.getCreatedAt());
+            }
+        });
 
         // Per badge “Nuovo” nelle ultime 24h
         LocalDateTime nowMinus24h = LocalDateTime.now().minusHours(24);
