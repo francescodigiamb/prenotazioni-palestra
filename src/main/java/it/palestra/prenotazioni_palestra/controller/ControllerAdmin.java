@@ -55,40 +55,51 @@ public class ControllerAdmin {
     }
 
     @GetMapping("/corsi")
-    public String corsiAdmin(Model model) {
+    public String corsiAdmin(
+            @org.springframework.web.bind.annotation.RequestParam(required = false) String q,
+            @org.springframework.web.bind.annotation.RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate dal,
+            @org.springframework.web.bind.annotation.RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate al,
+            @org.springframework.web.bind.annotation.RequestParam(required = false, defaultValue = "tutti") String stato,
+            Model model) {
+
         List<Corso> tutti = corsoRepository.findAll();
-        // ordina per data/ora decrescente
-        tutti.sort(java.util.Comparator
-                .comparing(Corso::getData).reversed()
-                .thenComparing(Corso::getOrario).reversed());
+
+        // SOLO corsi non scaduti (quelli scaduti stanno in Archiviati)
+        List<Corso> visibili = tutti.stream()
+                .filter(c -> !isExpired(c))
+                .toList();
+
+        // filtri
+        String qNorm = (q == null) ? "" : q.trim().toLowerCase();
+
+        List<Corso> filtrati = visibili.stream()
+                .filter(c -> qNorm.isBlank() || (c.getNome() != null && c.getNome().toLowerCase().contains(qNorm)))
+                .filter(c -> dal == null || !c.getData().isBefore(dal))
+                .filter(c -> al == null || !c.getData().isAfter(al))
+                .filter(c -> "tutti".equalsIgnoreCase(stato)
+                        || ("aperti".equalsIgnoreCase(stato) && !c.isChiuso())
+                        || ("chiusi".equalsIgnoreCase(stato) && c.isChiuso()))
+                // ordinamento: prossimi corsi prima (più comodo in gestione)
+                .sorted(java.util.Comparator
+                        .comparing(Corso::getData)
+                        .thenComparing(Corso::getOrario))
+                .toList();
 
         Map<Integer, Integer> prenotatiMap = new java.util.HashMap<>();
-        for (Corso c : tutti) {
+        for (Corso c : filtrati) {
             prenotatiMap.put(c.getId(), prenotazioneRepository.countByCorsoAndRiservaFalse(c));
-
         }
 
-        model.addAttribute("corsi", tutti);
+        // per precompilare il form filtri
+        model.addAttribute("q", q);
+        model.addAttribute("dal", dal);
+        model.addAttribute("al", al);
+        model.addAttribute("stato", stato);
+
+        model.addAttribute("corsi", filtrati);
         model.addAttribute("prenotatiMap", prenotatiMap);
-        return "admin-corsi"; // nuovo template
-    }
 
-    @org.springframework.transaction.annotation.Transactional
-    @org.springframework.web.bind.annotation.PostMapping("/corsi/{id}/toggle-chiusura")
-    public String toggleChiusura(@org.springframework.web.bind.annotation.PathVariable Integer id,
-            org.springframework.web.servlet.mvc.support.RedirectAttributes ra) {
-        var maybe = corsoRepository.findById(id);
-        if (!maybe.isPresent()) {
-            ra.addFlashAttribute("error", "Corso non trovato.");
-            return "redirect:/admin/corsi";
-        }
-        Corso c = maybe.get();
-        c.setChiuso(!c.isChiuso());
-        corsoRepository.save(c);
-        ra.addFlashAttribute("success", c.isChiuso()
-                ? "Prenotazioni chiuse per il corso: " + c.getNome()
-                : "Prenotazioni riaperte per il corso: " + c.getNome());
-        return "redirect:/admin/corsi";
+        return "admin-corsi";
     }
 
     @GetMapping("/corsi/{id}")

@@ -22,6 +22,31 @@
         </div>
 
         <div th:replace="~{fragments :: alerts}"></div>
+        <!-- Filtro corsi -->
+        <form class="p-3 mb-3 rounded border shadow-none bg-transparent" method="get" action="/admin/corsi">
+            <div class="row g-2 align-items-end">
+                <div class="col-12 col-md-4">
+                    <label class="form-label mb-1">Cerca per nome</label>
+                    <input type="text" name="q" class="form-control" placeholder="Es. Yoga, Cross..." th:value="${q}">
+                </div>
+
+                <div class="col-6 col-md-2">
+                    <label class="form-label mb-1">Dal</label>
+                    <input type="date" name="dal" class="form-control" th:value="${dal}">
+                </div>
+
+                <div class="col-6 col-md-2">
+                    <label class="form-label mb-1">Al</label>
+                    <input type="date" name="al" class="form-control" th:value="${al}">
+                </div>
+
+                <div class="col-12 col-md-2 d-flex gap-2">
+                    <button class="btn btn-primary w-100" type="submit">Filtra</button>
+                    <a class="btn btn-outline-secondary w-100" href="/admin/corsi">Reset</a>
+                </div>
+            </div>
+        </form>
+
 
         <div th:if="${#lists.isEmpty(corsi)}" class="alert alert-info">
             Nessun corso trovato.
