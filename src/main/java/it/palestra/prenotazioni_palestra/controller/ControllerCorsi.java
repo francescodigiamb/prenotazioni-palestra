@@ -302,7 +302,7 @@ public class ControllerCorsi {
         totalBody.descrizione = "Allenamento completo che coinvolge tutti i distretti muscolari con esercizi a corpo libero e piccoli attrezzi.";
         totalBody.capienzaTipica = 20;
         totalBody.riserveTipiche = 6; // NUOVO: lista d'attesa
-        totalBody.durata = "60 min"; // opzionale
+        totalBody.durata = "50 min"; // opzionale
         totalBody.slot = java.util.Arrays.asList("Lunedì 18:00", "Giovedì 18:00");
         schede.add(totalBody);
 
@@ -311,7 +311,7 @@ public class ControllerCorsi {
         gag.descrizione = "Lezione mirata su glutei, addome e gambe: tono, resistenza e lavoro metabolico.";
         gag.capienzaTipica = 20;
         gag.riserveTipiche = 6;
-        gag.durata = "45 min";
+        gag.durata = "50 min";
         gag.slot = java.util.Arrays.asList("Lunedì 19:00", "Mercoledì 19:00", "Venerdì 18:00", "Sabato 16:15");
         schede.add(gag);
 
@@ -320,7 +320,7 @@ public class ControllerCorsi {
         funzionale.descrizione = "Circuiti e movimenti multiarticolari per migliorare forza, coordinazione e fiato.";
         funzionale.capienzaTipica = 20;
         funzionale.riserveTipiche = 6;
-        funzionale.durata = "60 min";
+        funzionale.durata = "50 min";
         funzionale.slot = java.util.Arrays.asList("Martedì 19:00 e 20:00", "Giovedì 19:00 e 20:00", "Sabato 15:00");
         schede.add(funzionale);
 
@@ -329,7 +329,7 @@ public class ControllerCorsi {
         pilates.descrizione = "Corso focalizzato sul controllo del corpo, sulla postura e sulla respirazione. Attraverso esercizi mirati migliora forza, flessibilità e stabilità, contribuendo al benessere fisico generale. Adatto a tutti i livelli.";
         pilates.capienzaTipica = 20;
         pilates.riserveTipiche = 6;
-        pilates.durata = "60 min";
+        pilates.durata = "50 min";
         pilates.slot = java.util.Arrays.asList("Lunedì 20:00 e 21:00", "Mercoledì 18:00", "Venerdì 20:00 e 21:00");
         schede.add(pilates);
 
@@ -338,7 +338,7 @@ public class ControllerCorsi {
         steptone.descrizione = "Allenamento che combina esercizi aerobici su step con fasi di tonificazione muscolare. Il corso aiuta a migliorare resistenza cardiovascolare e tono muscolare, offrendo un allenamento completo e dinamico.";
         steptone.capienzaTipica = 20;
         steptone.riserveTipiche = 6;
-        steptone.durata = "60 min";
+        steptone.durata = "50 min";
         steptone.slot = java.util.Arrays.asList("Mercoledì 20:00", "Venerdì 19:00");
         schede.add(steptone);
 
@@ -346,6 +346,57 @@ public class ControllerCorsi {
         schede.sort(java.util.Comparator.comparing(sc -> sc.nome.toLowerCase()));
 
         model.addAttribute("schede", schede);
+
+        // ===== ORARI SETTIMANALI (VETRINA A GRIGLIA) =====
+
+        // Giorni (ordine fisso)
+        java.util.List<String> giorniSettimana = java.util.Arrays.asList(
+                "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato");
+
+        // Orari fissi (ordine fisso)
+        java.util.List<String> orariFissi = java.util.Arrays.asList(
+                "15:00", "16:15", "18:00", "19:00", "20:00", "21:00");
+
+        // Griglia: chiave "Giorno|Orario" -> Nome corso
+        java.util.Map<String, String> grigliaOrari = new java.util.HashMap<>();
+
+        // LUNEDÌ
+        grigliaOrari.put("Lunedì|18:00", "Total Body");
+        grigliaOrari.put("Lunedì|19:00", "G.A.G.");
+        grigliaOrari.put("Lunedì|20:00", "Pilates");
+        grigliaOrari.put("Lunedì|21:00", "Pilates");
+
+        // MARTEDÌ
+        grigliaOrari.put("Martedì|19:00", "Funzionale");
+        grigliaOrari.put("Martedì|20:00", "Funzionale");
+
+        // MERCOLEDÌ
+        grigliaOrari.put("Mercoledì|18:00", "Pilates");
+        grigliaOrari.put("Mercoledì|19:00", "G.A.G.");
+        grigliaOrari.put("Mercoledì|20:00", "Step-Tone");
+
+        // GIOVEDÌ
+        grigliaOrari.put("Giovedì|18:00", "Total Body");
+        grigliaOrari.put("Giovedì|19:00", "Funzionale");
+        grigliaOrari.put("Giovedì|20:00", "Funzionale");
+
+        // VENERDÌ
+        grigliaOrari.put("Venerdì|18:00", "G.A.G.");
+        grigliaOrari.put("Venerdì|19:00", "Step-Tone");
+        grigliaOrari.put("Venerdì|20:00", "Pilates");
+        grigliaOrari.put("Venerdì|21:00", "Pilates");
+
+        // SABATO
+        grigliaOrari.put("Sabato|15:00", "Funzionale");
+        grigliaOrari.put("Sabato|16:15", "G.A.G.");
+
+        // Passo al template
+        model.addAttribute("durataCorsi", "50 minuti");
+        model.addAttribute("minPartecipanti", 4);
+        model.addAttribute("giorniSettimana", giorniSettimana);
+        model.addAttribute("orariFissi", orariFissi);
+        model.addAttribute("grigliaOrari", grigliaOrari);
+
         return "catalogo-corsi";
     }
 

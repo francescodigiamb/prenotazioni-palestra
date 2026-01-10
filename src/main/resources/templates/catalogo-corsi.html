@@ -23,6 +23,79 @@
             <div class="col-12" th:if="${#lists.isEmpty(schede)}">
                 <div class="alert alert-info">Nessun corso disponibile al momento.</div>
             </div>
+            <div class="mb-4">
+                <h4 class="text-dark mb-3">Orari settimanali</h4>
+
+                <div class="mb-3 small text-muted">
+                    I corsi hanno una durata di <strong th:text="${durataCorsi}">50 minuti</strong>
+                    con un minimo <strong th:text="${minPartecipanti}">4</strong> persone
+                </div>
+
+                <!-- DESKTOP/TABLET: tabella a griglia -->
+                <div class="d-none d-md-block">
+                    <div class="table-responsive">
+                        <table class="table table-bordered align-middle text-center">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 90px;">Ora</th>
+                                    <th th:each="g : ${giorniSettimana}" th:text="${g}">Lunedì</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                <tr th:each="o : ${orariFissi}">
+                                    <th class="table-light" th:text="${o}">18:00</th>
+
+                                    <td th:each="g : ${giorniSettimana}">
+                                        <span th:text="${grigliaOrari[g + '|' + o]}"> </span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- MOBILE: lista per giorno (leggibile) -->
+                <div class="d-md-none">
+                    <div class="row g-2">
+                        <div class="col-12" th:each="g : ${giorniSettimana}">
+                            <div class="p-3 rounded border shadow-none bg-white">
+                                <div class="fw-semibold mb-2" th:text="${g}">Lunedì</div>
+
+                                <ul class="list-unstyled mb-0 small">
+                                    <li th:each="o : ${orariFissi}" th:if="${grigliaOrari[g + '|' + o] != null}"
+                                        class="mb-1">
+                                        <span class="fw-semibold" th:text="${o}">18:00</span>
+                                        <span> — </span>
+                                        <span th:text="${grigliaOrari[g + '|' + o]}">Total Body</span>
+                                    </li>
+
+                                    <li th:if="${#lists.isEmpty(orariFissi)}" class="text-muted small">
+                                        Nessun corso
+                                    </li>
+                                </ul>
+
+                                <!-- messaggio se quel giorno è tutto vuoto -->
+                                <div class="text-muted small" th:if="${#lists.isEmpty(orariFissi) == false and
+                                 grigliaOrari[g + '|15:00'] == null and
+                                 grigliaOrari[g + '|16:15'] == null and
+                                 grigliaOrari[g + '|18:00'] == null and
+                                 grigliaOrari[g + '|19:00'] == null and
+                                 grigliaOrari[g + '|20:00'] == null and
+                                 grigliaOrari[g + '|21:00'] == null}">
+                                    Nessun corso
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-muted small mt-2">
+                    * Orari indicativi: per prenotare vai su <a href="/corsi">Prenota ora</a>.
+                </div>
+            </div>
+
+
             <div class="col-12 col-md-6 col-lg-4" th:each="c : ${schede}">
                 <div class="card h-100">
                     <div class="card-body">
