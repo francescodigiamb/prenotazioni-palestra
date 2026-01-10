@@ -64,13 +64,13 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link"
-                            th:classappend="${#httpServletRequest != null and (#httpServletRequest.requestURI ?: '').startsWith('/corsi')} ? ' active' : ''"
-                            href="/corsi">Prenota ora</a>
+                            th:classappend="${#httpServletRequest != null and (#httpServletRequest.requestURI ?: '').startsWith('/listino')} ? ' active' : ''"
+                            href="/listino">Listino prezzi</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link"
-                            th:classappend="${#httpServletRequest != null and (#httpServletRequest.requestURI ?: '').startsWith('/listino')} ? ' active' : ''"
-                            href="/listino">Listino prezzi</a>
+                            th:classappend="${#httpServletRequest != null and (#httpServletRequest.requestURI ?: '').startsWith('/corsi')} ? ' active' : ''"
+                            href="/corsi">Prenota ora</a>
                     </li>
                 </ul>
 

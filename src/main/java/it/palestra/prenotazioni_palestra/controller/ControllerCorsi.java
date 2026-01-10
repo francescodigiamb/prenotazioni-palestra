@@ -285,58 +285,62 @@ public class ControllerCorsi {
         public String descrizione;
         public java.util.List<String> slot = new java.util.ArrayList<>(); // es: "Martedì 19:00"
         public Integer capienzaTipica; // maxPosti più frequente tra le future
+        public Integer riserveTipiche; // posti extra per le riserve del corso
+        public String durata; // durata del corso
+
     }
 
     @GetMapping("/catalogo")
     public String catalogoCorsi(Model model) {
-        java.time.LocalDate oggi = java.time.LocalDate.now();
-
-        // Prendiamo SOLO occorrenze future/scadute oggi ma non ancora iniziate
-        java.util.List<it.palestra.prenotazioni_palestra.model.Corso> occorrenze = corsoRepository.findAll().stream()
-                .filter(c -> c.getData().isAfter(oggi) ||
-                        (c.getData().isEqual(oggi) && c.getOrario().isAfter(java.time.LocalTime.now())))
-                .toList();
-
-        // Raggruppa per nome corso
-        java.util.Map<String, java.util.List<it.palestra.prenotazioni_palestra.model.Corso>> byNome = occorrenze
-                .stream().collect(
-                        java.util.stream.Collectors.groupingBy(it.palestra.prenotazioni_palestra.model.Corso::getNome));
 
         java.util.List<SchedaCatalogo> schede = new java.util.ArrayList<>();
-        for (var entry : byNome.entrySet()) {
-            String nome = entry.getKey();
-            var list = entry.getValue();
 
-            // descrizione: prendi la prima non vuota
-            String descr = list.stream()
-                    .map(it.palestra.prenotazioni_palestra.model.Corso::getDescrizione)
-                    .filter(s -> s != null && !s.isBlank())
-                    .findFirst().orElse("");
+        // ===== CORSI VETRINA (FISSI) =====
 
-            // slot unici: giorno della settimana + orario (ordinati)
-            java.util.Set<String> slotSet = new java.util.TreeSet<>();
-            for (var c : list) {
-                String s = giornoIt(c.getData().getDayOfWeek()) + " " +
-                        c.getOrario().toString().substring(0, 5); // HH:mm
-                slotSet.add(s);
-            }
+        SchedaCatalogo totalBody = new SchedaCatalogo();
+        totalBody.nome = "Total Body";
+        totalBody.descrizione = "Allenamento completo che coinvolge tutti i distretti muscolari con esercizi a corpo libero e piccoli attrezzi.";
+        totalBody.capienzaTipica = 20;
+        totalBody.riserveTipiche = 6; // NUOVO: lista d'attesa
+        totalBody.durata = "60 min"; // opzionale
+        totalBody.slot = java.util.Arrays.asList("Lunedì 18:00", "Giovedì 18:00");
+        schede.add(totalBody);
 
-            // capienza tipica: moda dei maxPosti
-            java.util.Map<Integer, Long> countByCap = list.stream()
-                    .collect(java.util.stream.Collectors.groupingBy(
-                            it.palestra.prenotazioni_palestra.model.Corso::getMaxPosti,
-                            java.util.stream.Collectors.counting()));
-            Integer capTipica = countByCap.entrySet().stream()
-                    .max(java.util.Map.Entry.comparingByValue())
-                    .map(java.util.Map.Entry::getKey).orElse(null);
+        SchedaCatalogo gag = new SchedaCatalogo();
+        gag.nome = "GAG";
+        gag.descrizione = "Lezione mirata su glutei, addome e gambe: tono, resistenza e lavoro metabolico.";
+        gag.capienzaTipica = 20;
+        gag.riserveTipiche = 6;
+        gag.durata = "45 min";
+        gag.slot = java.util.Arrays.asList("Lunedì 19:00", "Mercoledì 19:00", "Venerdì 18:00", "Sabato 16:15");
+        schede.add(gag);
 
-            SchedaCatalogo s = new SchedaCatalogo();
-            s.nome = nome;
-            s.descrizione = descr;
-            s.capienzaTipica = capTipica;
-            s.slot = new java.util.ArrayList<>(slotSet);
-            schede.add(s);
-        }
+        SchedaCatalogo funzionale = new SchedaCatalogo();
+        funzionale.nome = "Funzionale";
+        funzionale.descrizione = "Circuiti e movimenti multiarticolari per migliorare forza, coordinazione e fiato.";
+        funzionale.capienzaTipica = 20;
+        funzionale.riserveTipiche = 6;
+        funzionale.durata = "60 min";
+        funzionale.slot = java.util.Arrays.asList("Martedì 19:00 e 20:00", "Giovedì 19:00 e 20:00", "Sabato 15:00");
+        schede.add(funzionale);
+
+        SchedaCatalogo pilates = new SchedaCatalogo();
+        pilates.nome = "Pilates";
+        pilates.descrizione = "Corso focalizzato sul controllo del corpo, sulla postura e sulla respirazione. Attraverso esercizi mirati migliora forza, flessibilità e stabilità, contribuendo al benessere fisico generale. Adatto a tutti i livelli.";
+        pilates.capienzaTipica = 20;
+        pilates.riserveTipiche = 6;
+        pilates.durata = "60 min";
+        pilates.slot = java.util.Arrays.asList("Lunedì 20:00 e 21:00", "Mercoledì 18:00", "Venerdì 20:00 e 21:00");
+        schede.add(pilates);
+
+        SchedaCatalogo steptone = new SchedaCatalogo();
+        steptone.nome = "Step-Tone";
+        steptone.descrizione = "Allenamento che combina esercizi aerobici su step con fasi di tonificazione muscolare. Il corso aiuta a migliorare resistenza cardiovascolare e tono muscolare, offrendo un allenamento completo e dinamico.";
+        steptone.capienzaTipica = 20;
+        steptone.riserveTipiche = 6;
+        steptone.durata = "60 min";
+        steptone.slot = java.util.Arrays.asList("Mercoledì 20:00", "Venerdì 19:00");
+        schede.add(steptone);
 
         // Ordina alfabetico per nome
         schede.sort(java.util.Comparator.comparing(sc -> sc.nome.toLowerCase()));
