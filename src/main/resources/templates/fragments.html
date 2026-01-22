@@ -75,13 +75,17 @@
                 </ul>
 
                 <!-- Right -->
-                <div class="d-flex align-items-center">
+                <div class="d-flex align-items-center flex-column flex-lg-row">
                     <!-- Admin menu (solo ADMIN) -->
-                    <div class="dropdown me-2" th:if="${#authorization.expression('hasRole(''ADMIN'')')}">
+                    <!-- ADMIN - DESKTOP -->
+                    <div class="dropdown me-2 d-none d-lg-block"
+                        th:if="${#authorization.expression('hasRole(''ADMIN'')')}">
+
                         <button class="btn btn-outline-light btn-sm dropdown-toggle" type="button"
                             data-bs-toggle="dropdown">
                             Admin
                         </button>
+
                         <ul class="dropdown-menu dropdown-menu-end">
                             <li><a class="dropdown-item" href="/admin/modelli">Modelli corsi</a></li>
                             <li><a class="dropdown-item" href="/admin/corsi">Gestione corsi</a></li>
@@ -89,6 +93,27 @@
                             <li><a class="dropdown-item" href="/admin/corsi-archiviati">Archiviati</a></li>
                         </ul>
                     </div>
+
+                    <!-- ADMIN - MOBILE -->
+                    <div class="d-lg-none mb-2 align-self-start"
+                        th:if="${#authorization.expression('hasRole(''ADMIN'')')}">
+
+                        <div class="fw-semibold text-white mb-1">Admin</div>
+
+                        <a class="btn btn-outline-light btn-sm mb-1" href="/admin/modelli">
+                            Modelli corsi
+                        </a>
+                        <a class="btn btn-outline-light btn-sm mb-1" href="/admin/corsi">
+                            Gestione corsi
+                        </a>
+                        <a class="btn btn-outline-light btn-sm mb-1" href="/admin/prenotazioni">
+                            Prenotazioni
+                        </a>
+                        <a class="btn btn-outline-light btn-sm mb-1" href="/admin/corsi-archiviati">
+                            Archiviati
+                        </a>
+                    </div>
+
 
                     <!-- Lato destro: pulsante mie prenotazioni + login/logout -->
                     <div class="d-flex align-items-center gap-2">
@@ -112,11 +137,11 @@
                             <i class="bi bi-person-circle me-1"></i>
                             <span sec:authentication="name"></span>
                         </span> -->
+                        <form th:action="@{/logout}" method="post" class="d-block d-lg-inline align-self-start"
+                            sec:authorize="isAuthenticated()">
 
-                        <form th:action="@{/logout}" method="post" class="d-inline" sec:authorize="isAuthenticated()">
                             <button type="submit" class="btn btn-outline-light btn-sm">Logout</button>
                         </form>
-
                     </div>
                 </div>
             </div>
