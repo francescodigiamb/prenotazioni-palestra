@@ -22,7 +22,11 @@
                 <input class="form-control" th:field="*{nome}">
                 <div class="text-danger small" th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}"></div>
             </div>
-
+            <div class="mb-3">
+                <label class="form-label">Cognome</label>
+                <input class="form-control" th:field="*{cognome}">
+                <div class="text-danger small" th:if="${#fields.hasErrors('cognome')}" th:errors="*{cognome}"></div>
+            </div>
             <div class="mb-3">
                 <label class="form-label">Email</label>
                 <input class="form-control" th:field="*{email}">

@@ -23,6 +23,10 @@ public class Utente {
     @Column(nullable = false) // obbligatorio
     private String nome;
 
+    @NotBlank(message = "Il cognome è obbligatorio")
+    @Column(nullable = false)
+    private String cognome;
+
     @Column(unique = true)
     @NotBlank(message = "L'email è obbligatoria") // non può essere vuota o solo spazi
     @Email(message = "Formato email non valido") // deve avere un formato corretto
@@ -55,6 +59,7 @@ public class Utente {
 
     public Utente(String nome, String email, String password, String ruolo) {
         this.nome = nome;
+        this.cognome = "-";
         this.email = email;
         this.password = password;
         this.ruolo = ruolo;
@@ -75,6 +80,14 @@ public class Utente {
 
     public void setNome(String nome) {
         this.nome = nome;
+    }
+
+    public String getCognome() {
+        return cognome;
+    }
+
+    public void setCognome(String cognome) {
+        this.cognome = cognome;
     }
 
     public String getEmail() {

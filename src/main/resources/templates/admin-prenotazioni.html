@@ -67,7 +67,8 @@
                         <td th:text="${p.corso.nome}">Corso</td>
                         <td th:text="${#temporals.format(p.corso.data, 'dd/MM/yyyy')}">01/09/2025</td>
                         <td th:text="${#temporals.format(p.corso.orario, 'HH:mm')}">18:00</td>
-                        <td th:text="${p.utente != null ? p.utente.nome : 'N/D'}">Mario Rossi</td>
+                        <td th:text="${p.utente != null ? (p.utente.nome + ' ' + p.utente.cognome) : 'N/D'}">Mario Rossi
+                        </td>
                         <td class="d-none d-md-table-cell" th:text="${p.utente != null ? p.utente.email : 'N/D'}">
                             mario@example.com</td>
                         <td>

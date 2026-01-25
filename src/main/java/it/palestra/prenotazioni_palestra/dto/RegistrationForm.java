@@ -8,6 +8,9 @@ public class RegistrationForm {
     @NotBlank(message = "Il nome è obbligatorio")
     private String nome;
 
+    @NotBlank(message = "Il cognome è obbligatorio")
+    private String cognome;
+
     @NotBlank
     @Email(message = "Email non valida")
     private String email;
@@ -26,6 +29,14 @@ public class RegistrationForm {
 
     public void setNome(String nome) {
         this.nome = nome;
+    }
+
+    public String getCognome() {
+        return cognome;
+    }
+
+    public void setCognome(String cognome) {
+        this.cognome = cognome;
     }
 
     public String getEmail() {

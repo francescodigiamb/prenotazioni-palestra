@@ -56,6 +56,7 @@ public class ControllerAuth {
         // crea utente
         Utente u = new Utente();
         u.setNome(form.getNome().trim());
+        u.setCognome(form.getCognome().trim());
         u.setEmail(form.getEmail().trim());
         u.setPassword(passwordEncoder.encode(form.getPassword()));
         u.setRuolo("UTENTE");
