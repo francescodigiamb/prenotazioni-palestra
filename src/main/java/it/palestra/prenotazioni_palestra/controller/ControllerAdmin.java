@@ -8,6 +8,7 @@ import it.palestra.prenotazioni_palestra.repository.ModelloCorsoRepository;
 import it.palestra.prenotazioni_palestra.repository.PrenotazioneRepository;
 import it.palestra.prenotazioni_palestra.service.PianificazioneService;
 
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
@@ -280,58 +281,155 @@ public class ControllerAdmin {
     }
 
     @GetMapping("/prenotazioni")
-    public String adminPrenotazioni(@RequestParam(value = "corsoId", required = false) Integer corsoId,
+    public String adminPrenotazioni(
+            @RequestParam(value = "corsoId", required = false) Integer corsoId,
             @RequestParam(value = "email", required = false) String email,
+            @RequestParam(value = "dataDa", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataDa,
+            @RequestParam(value = "dataA", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataA,
             Model model) {
 
-        List<Prenotazione> prenotazioni;
+        // 1) Parto da tutte
+        List<Prenotazione> prenotazioni = prenotazioneRepository.findAll();
+
+        // 2) Filtro per corso (se presente)
         if (corsoId != null) {
-            prenotazioni = prenotazioneRepository.findByCorso_Id(corsoId);
-            model.addAttribute("filtro", "Corso ID: " + corsoId);
-        } else if (email != null && !email.trim().isEmpty()) {
-            prenotazioni = prenotazioneRepository.findByUtente_Email(email.trim());
-            model.addAttribute("filtro", "Email: " + email.trim());
-        } else {
-            prenotazioni = prenotazioneRepository.findAll(); // semplice; se vuoi puoi ordinare
-            model.addAttribute("filtro", "Tutte");
+            List<Prenotazione> filtrate = new ArrayList<Prenotazione>();
+            for (Prenotazione p : prenotazioni) {
+                if (p.getCorso() != null && p.getCorso().getId() != null && p.getCorso().getId().equals(corsoId)) {
+                    filtrate.add(p);
+                }
+            }
+            prenotazioni = filtrate;
         }
 
-        // Ordine: corso (data/ora desc), poi confermati prima delle riserve, poi
-        // createdAt (più vecchi prima)
+        // 3) Filtro per email (se presente)
+        String emailTrim = null;
+        if (email != null && !email.trim().isEmpty()) {
+            emailTrim = email.trim();
+            List<Prenotazione> filtrate = new ArrayList<Prenotazione>();
+            for (Prenotazione p : prenotazioni) {
+                if (p.getUtente() != null && p.getUtente().getEmail() != null
+                        && p.getUtente().getEmail().equalsIgnoreCase(emailTrim)) {
+                    filtrate.add(p);
+                }
+            }
+            prenotazioni = filtrate;
+        }
+
+        // 4) Filtro dataDa (se presente) - inclusivo
+        if (dataDa != null) {
+            List<Prenotazione> filtrate = new ArrayList<Prenotazione>();
+            for (Prenotazione p : prenotazioni) {
+                if (p.getCorso() != null && p.getCorso().getData() != null
+                        && !p.getCorso().getData().isBefore(dataDa)) {
+                    filtrate.add(p);
+                }
+            }
+            prenotazioni = filtrate;
+        }
+
+        // 5) Filtro dataA (se presente) - inclusivo
+        if (dataA != null) {
+            List<Prenotazione> filtrate = new ArrayList<Prenotazione>();
+            for (Prenotazione p : prenotazioni) {
+                if (p.getCorso() != null && p.getCorso().getData() != null
+                        && !p.getCorso().getData().isAfter(dataA)) {
+                    filtrate.add(p);
+                }
+            }
+            prenotazioni = filtrate;
+        }
+
+        // 6) Ordinamento: data/ora ASC, confermati prima delle riserve, createdAt (più
+        // vecchi prima)
         Collections.sort(prenotazioni, new Comparator<Prenotazione>() {
             @Override
             public int compare(Prenotazione p1, Prenotazione p2) {
 
-                // 1) data corso DESC
-                int cmpData = p2.getCorso().getData().compareTo(p1.getCorso().getData());
-                if (cmpData != 0)
-                    return cmpData;
+                // 1) data corso ASC
+                if (p1.getCorso() != null && p2.getCorso() != null
+                        && p1.getCorso().getData() != null && p2.getCorso().getData() != null) {
+                    int cmpData = p1.getCorso().getData().compareTo(p2.getCorso().getData());
+                    if (cmpData != 0) {
+                        return cmpData;
+                    }
+                }
 
-                // 2) orario corso DESC
-                int cmpOra = p2.getCorso().getOrario().compareTo(p1.getCorso().getOrario());
-                if (cmpOra != 0)
-                    return cmpOra;
+                // 2) orario corso ASC
+                if (p1.getCorso() != null && p2.getCorso() != null
+                        && p1.getCorso().getOrario() != null && p2.getCorso().getOrario() != null) {
+                    int cmpOra = p1.getCorso().getOrario().compareTo(p2.getCorso().getOrario());
+                    if (cmpOra != 0) {
+                        return cmpOra;
+                    }
+                }
 
                 // 3) confermati prima delle riserve
-                if (p1.isRiserva() && !p2.isRiserva())
+                if (p1.isRiserva() && !p2.isRiserva()) {
                     return 1;
-                if (!p1.isRiserva() && p2.isRiserva())
+                }
+                if (!p1.isRiserva() && p2.isRiserva()) {
                     return -1;
+                }
 
                 // 4) createdAt (più vecchi prima)
-                if (p1.getCreatedAt() == null && p2.getCreatedAt() == null)
+                if (p1.getCreatedAt() == null && p2.getCreatedAt() == null) {
                     return 0;
-                if (p1.getCreatedAt() == null)
+                }
+                if (p1.getCreatedAt() == null) {
                     return -1;
-                if (p2.getCreatedAt() == null)
+                }
+                if (p2.getCreatedAt() == null) {
                     return 1;
+                }
 
                 return p1.getCreatedAt().compareTo(p2.getCreatedAt());
             }
         });
 
+        // 7) Model
         model.addAttribute("prenotazioni", prenotazioni);
-        model.addAttribute("corsi", corsoRepository.findAll()); // per dropdown filtro
+        model.addAttribute("corsi", corsoRepository.findAll());
+
+        // filtri sticky
+        model.addAttribute("selectedCorsoId", corsoId);
+        model.addAttribute("emailFilter", emailTrim != null ? emailTrim : email);
+        model.addAttribute("dataDa", dataDa);
+        model.addAttribute("dataA", dataA);
+
+        // etichetta filtro (opzionale)
+        String filtro = "Tutte";
+        if (corsoId != null) {
+            filtro = "Corso ID: " + corsoId;
+        }
+        if (emailTrim != null) {
+            if (!"Tutte".equals(filtro)) {
+                filtro = filtro + " + Email: " + emailTrim;
+            } else {
+                filtro = "Email: " + emailTrim;
+            }
+        }
+        if (dataDa != null || dataA != null) {
+            String range = "";
+            if (dataDa != null) {
+                range += "Dal " + dataDa;
+            }
+            if (dataA != null) {
+                if (!range.isEmpty()) {
+                    range += " ";
+                }
+                range += "Al " + dataA;
+            }
+            if (!range.isEmpty()) {
+                if (!"Tutte".equals(filtro)) {
+                    filtro = filtro + " + " + range;
+                } else {
+                    filtro = range;
+                }
+            }
+        }
+        model.addAttribute("filtro", filtro);
+
         return "admin-prenotazioni";
     }
 

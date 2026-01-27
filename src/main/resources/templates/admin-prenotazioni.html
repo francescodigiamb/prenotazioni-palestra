@@ -29,19 +29,34 @@
                 <select class="form-select" name="corsoId">
                     <option value="">-- tutti --</option>
                     <option th:each="c : ${corsi}" th:value="${c.id}"
+                        th:selected="${selectedCorsoId != null and selectedCorsoId == c.id}"
                         th:text="${c.nome + ' (' + #temporals.format(c.data, 'dd/MM') + ' ' + #temporals.format(c.orario, 'HH:mm') + ')'}">
                     </option>
                 </select>
             </div>
+
             <div class="col-12 col-md-4">
                 <label class="form-label">Email utente</label>
-                <input class="form-control" type="text" name="email" placeholder="utente@email.com">
+                <input class="form-control" type="text" name="email" placeholder="utente@email.com"
+                    th:value="${emailFilter}">
             </div>
-            <div class="col-12 col-md-4 d-flex flex-wrap gap-2">
+
+            <div class="col-6 col-md-2">
+                <label class="form-label">Data da</label>
+                <input class="form-control" type="date" name="dataDa" th:value="${dataDa}">
+            </div>
+
+            <div class="col-6 col-md-2">
+                <label class="form-label">Data a</label>
+                <input class="form-control" type="date" name="dataA" th:value="${dataA}">
+            </div>
+
+            <div class="col-12 d-flex flex-wrap gap-2 mt-2">
                 <button class="btn btn-sm btn-primary" type="submit">Filtra</button>
                 <a class="btn btn-sm btn-outline-secondary" href="/admin/prenotazioni">Reset</a>
             </div>
         </form>
+
 
         <div th:if="${#lists.isEmpty(prenotazioni)}" class="alert alert-info">
             Nessuna prenotazione trovata.
