@@ -147,40 +147,121 @@ public class ControllerPrenotazioni {
         }
 
         List<Prenotazione> prenotazioni = prenotazioneRepository.findByUtente_Email(email.trim());
-        // >>> Badge di validità
-        var statoMap = new java.util.HashMap<Integer, String>(); // p.id -> "Valida"/"Oggi"/"Scaduta"
-        var coloreMap = new java.util.HashMap<Integer, String>(); // p.id -> "success"/"warning"/"secondary"
 
-        var today = java.time.LocalDate.now();
-        var now = java.time.LocalTime.now();
+        // Badge di validità
+        java.util.Map<Integer, String> statoMap = new java.util.HashMap<Integer, String>(); // p.id ->
+                                                                                            // "Valida"/"Oggi"/"Scaduta"
+        java.util.Map<Integer, String> coloreMap = new java.util.HashMap<Integer, String>(); // p.id ->
+                                                                                             // "success"/"warning"/"secondary"
+
+        // Liste separate
+        List<Prenotazione> prenotazioniAttive = new java.util.ArrayList<Prenotazione>();
+        List<Prenotazione> prenotazioniArchivio = new java.util.ArrayList<Prenotazione>();
+
+        java.time.LocalDate today = java.time.LocalDate.now();
+        java.time.LocalTime now = java.time.LocalTime.now();
 
         for (Prenotazione p : prenotazioni) {
-            var corso = p.getCorso();
-            if (corso == null)
+            if (p == null || p.getId() == null) {
                 continue;
+            }
 
-            var d = corso.getData();
-            var t = corso.getOrario();
+            Corso corso = p.getCorso();
+            if (corso == null || corso.getData() == null || corso.getOrario() == null) {
+                // se manca qualcosa, la consideriamo "attiva" per non buttarla in archivio per
+                // errore
+                prenotazioniAttive.add(p);
+                statoMap.put(p.getId(), "Valida");
+                coloreMap.put(p.getId(), "success");
+                continue;
+            }
+
+            java.time.LocalDate d = corso.getData();
+            java.time.LocalTime t = corso.getOrario();
 
             boolean expired = d.isBefore(today) || (d.isEqual(today) && !t.isAfter(now));
 
             if (expired) {
+                prenotazioniArchivio.add(p);
                 statoMap.put(p.getId(), "Scaduta");
                 coloreMap.put(p.getId(), "secondary");
             } else if (d.isEqual(today)) {
+                prenotazioniAttive.add(p);
                 statoMap.put(p.getId(), "Oggi");
                 coloreMap.put(p.getId(), "warning");
             } else {
+                prenotazioniAttive.add(p);
                 statoMap.put(p.getId(), "Valida");
                 coloreMap.put(p.getId(), "success");
             }
         }
 
+        // Ordinamento attive: data ASC, ora ASC
+        java.util.Collections.sort(prenotazioniAttive, new java.util.Comparator<Prenotazione>() {
+            @Override
+            public int compare(Prenotazione a, Prenotazione b) {
+                Corso ca = (a != null) ? a.getCorso() : null;
+                Corso cb = (b != null) ? b.getCorso() : null;
+
+                if (ca == null || cb == null || ca.getData() == null || cb.getData() == null) {
+                    return 0;
+                }
+
+                int cmpData = ca.getData().compareTo(cb.getData());
+                if (cmpData != 0)
+                    return cmpData;
+
+                if (ca.getOrario() == null || cb.getOrario() == null) {
+                    return 0;
+                }
+
+                int cmpOra = ca.getOrario().compareTo(cb.getOrario());
+                if (cmpOra != 0)
+                    return cmpOra;
+
+                return 0;
+            }
+        });
+
+        // Ordinamento archivio: data DESC, ora DESC
+        java.util.Collections.sort(prenotazioniArchivio, new java.util.Comparator<Prenotazione>() {
+            @Override
+            public int compare(Prenotazione a, Prenotazione b) {
+                Corso ca = (a != null) ? a.getCorso() : null;
+                Corso cb = (b != null) ? b.getCorso() : null;
+
+                if (ca == null || cb == null || ca.getData() == null || cb.getData() == null) {
+                    return 0;
+                }
+
+                int cmpData = cb.getData().compareTo(ca.getData());
+                if (cmpData != 0)
+                    return cmpData;
+
+                if (ca.getOrario() == null || cb.getOrario() == null) {
+                    return 0;
+                }
+
+                int cmpOra = cb.getOrario().compareTo(ca.getOrario());
+                if (cmpOra != 0)
+                    return cmpOra;
+
+                return 0;
+            }
+        });
+
         model.addAttribute("email", email);
-        model.addAttribute("prenotazioni", prenotazioni);
+        model.addAttribute("prenotazioniAttive", prenotazioniAttive);
+        model.addAttribute("prenotazioniArchivio", prenotazioniArchivio);
+
+        // se vuoi mantenere compatibilità con template vecchio:
+        model.addAttribute("prenotazioni", prenotazioniAttive);
+
         model.addAttribute("statoMap", statoMap);
         model.addAttribute("coloreMap", coloreMap);
+
         return "prenotazioni-mie";
+
     }
 
     // ====== CANCELLA PRENOTAZIONE (POST) ======
