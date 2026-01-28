@@ -32,7 +32,8 @@
                         <th>Nome</th>
                         <th>Data</th>
                         <th>Orario</th>
-                        <th>Iscritti</th>
+                        <th>Confermati</th>
+                        <th>Riserve</th>
                         <th>Azioni</th>
                     </tr>
                 </thead>
@@ -43,8 +44,10 @@
                         <td th:text="${#temporals.format(corso.data, 'dd/MM/yyyy')}">01/09/2025</td>
                         <td th:text="${#temporals.format(corso.orario, 'HH:mm')}">18:00</td>
                         <td th:text="${prenotatiMap[corso.id]}">0</td>
+                        <td th:text="${riserveMap[corso.id]}">0</td>
                         <td>
-                            <a class="btn btn-sm btn-outline-dark" th:href="@{/corsi/{id}(id=${corso.id})}">Dettagli</a>
+                            <a class="btn btn-sm btn-outline-dark"
+                                th:href="@{/admin/corsi/{id}(id=${corso.id})}">Dettagli</a>
                         </td>
                     </tr>
                 </tbody>

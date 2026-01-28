@@ -106,58 +106,106 @@ public class ControllerAdmin {
     @GetMapping("/corsi/{id}")
     public String adminDettaglioCorso(@PathVariable Integer id, Model model) {
 
-        // 1) Carico il corso
-        Corso corso = corsoRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Corso non trovato: " + id));
-
-        // 2) Divido le prenotazioni:
-        // - confermati = riserva = false
-        // - riserve = riserva = true
-        List<Prenotazione> confermati = prenotazioneRepository.findByCorsoAndRiservaFalse(corso);
-        List<Prenotazione> riserve = prenotazioneRepository.findByCorsoAndRiservaTrue(corso);
-
-        // 3) Conteggi utili (se vuoi mostrarli)
-        int prenotatiNormali = confermati.size();
-        int prenotatiInAttesa = riserve.size();
-
-        int postiTotali = corso.getMaxPosti();
-        int postiDisponibili = postiTotali - prenotatiNormali;
-        if (postiDisponibili < 0) {
-            postiDisponibili = 0;
+        Corso corso = corsoRepository.findById(id).orElse(null);
+        if (corso == null) {
+            model.addAttribute("error", "Corso non trovato.");
+            return "redirect:/admin/prenotazioni";
         }
 
-        // 4) Aggiungo al model
+        List<Prenotazione> prenotazioni = prenotazioneRepository.findByCorso_Id(id);
+
+        // Ordinamento: confermati prima, poi riserve; dentro: createdAt più vecchi
+        // prima
+        Collections.sort(prenotazioni, new Comparator<Prenotazione>() {
+            @Override
+            public int compare(Prenotazione p1, Prenotazione p2) {
+
+                // confermati prima delle riserve
+                if (p1.isRiserva() && !p2.isRiserva())
+                    return 1;
+                if (!p1.isRiserva() && p2.isRiserva())
+                    return -1;
+
+                // createdAt (più vecchi prima)
+                if (p1.getCreatedAt() == null && p2.getCreatedAt() == null)
+                    return 0;
+                if (p1.getCreatedAt() == null)
+                    return -1;
+                if (p2.getCreatedAt() == null)
+                    return 1;
+
+                return p1.getCreatedAt().compareTo(p2.getCreatedAt());
+            }
+        });
+
+        int confermati = 0;
+        int riserve = 0;
+
+        for (Prenotazione p : prenotazioni) {
+            if (p == null)
+                continue;
+            if (p.isRiserva()) {
+                riserve++;
+            } else {
+                confermati++;
+            }
+        }
+
+        Integer maxPosti = corso.getMaxPosti();
+        int postiDisponibili = 0;
+        if (maxPosti != null) {
+            postiDisponibili = maxPosti.intValue() - confermati;
+            if (postiDisponibili < 0)
+                postiDisponibili = 0;
+        }
+
         model.addAttribute("corso", corso);
+        model.addAttribute("prenotazioni", prenotazioni);
         model.addAttribute("confermati", confermati);
         model.addAttribute("riserve", riserve);
-        model.addAttribute("prenotatiNormali", prenotatiNormali);
-        model.addAttribute("prenotatiInAttesa", prenotatiInAttesa);
-        model.addAttribute("postiTotali", postiTotali);
         model.addAttribute("postiDisponibili", postiDisponibili);
 
-        return "admin-corso-dettaglio"; // il template che mostra i dettagli per l'admin
+        return "admin-corso-dettaglio";
     }
 
     // CORSI ARCHIVIATI
     @GetMapping("/corsi-archiviati")
     public String corsiArchiviati(Model model) {
+
         List<Corso> tutti = corsoRepository.findAll();
 
-        List<Corso> archiviati = tutti.stream()
-                .filter(this::isExpired)
-                .sorted(Comparator
-                        .comparing(Corso::getData).reversed()
-                        .thenComparing(Corso::getOrario).reversed())
-                .toList();
+        List<Corso> archiviati = new ArrayList<Corso>();
+        for (Corso c : tutti) {
+            if (c == null)
+                continue;
+            if (isExpired(c)) {
+                archiviati.add(c);
+            }
+        }
 
-        Map<Integer, Integer> prenotatiMap = new HashMap<>();
+        // ordine: DESC (ultimi svolti in alto)
+        Collections.sort(archiviati, new Comparator<Corso>() {
+            @Override
+            public int compare(Corso c1, Corso c2) {
+                int cmpData = c2.getData().compareTo(c1.getData());
+                if (cmpData != 0)
+                    return cmpData;
+                return c2.getOrario().compareTo(c1.getOrario());
+            }
+        });
+
+        java.util.Map<Integer, Integer> prenotatiMap = new java.util.HashMap<Integer, Integer>();
+        java.util.Map<Integer, Integer> riserveMap = new java.util.HashMap<Integer, Integer>();
+
         for (Corso c : archiviati) {
             prenotatiMap.put(c.getId(), prenotazioneRepository.countByCorsoAndRiservaFalse(c));
-
+            riserveMap.put(c.getId(), prenotazioneRepository.countByCorsoAndRiservaTrue(c));
         }
 
         model.addAttribute("corsi", archiviati);
         model.addAttribute("prenotatiMap", prenotatiMap);
+        model.addAttribute("riserveMap", riserveMap);
+
         return "admin-corsi-archiviati";
     }
 
@@ -288,147 +336,109 @@ public class ControllerAdmin {
             @RequestParam(value = "dataA", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataA,
             Model model) {
 
-        // 1) Parto da tutte
-        List<Prenotazione> prenotazioni = prenotazioneRepository.findAll();
+        LocalDate today = LocalDate.now();
+        LocalTime now = LocalTime.now();
 
-        // 2) Filtro per corso (se presente)
-        if (corsoId != null) {
-            List<Prenotazione> filtrate = new ArrayList<Prenotazione>();
-            for (Prenotazione p : prenotazioni) {
-                if (p.getCorso() != null && p.getCorso().getId() != null && p.getCorso().getId().equals(corsoId)) {
-                    filtrate.add(p);
-                }
+        // 1) Parto da tutti i corsi
+        List<Corso> tuttiCorsi = corsoRepository.findAll();
+
+        // 2) Tengo SOLO corsi attivi (oggi/futuri)
+        List<Corso> corsiAttivi = new ArrayList<Corso>();
+        for (Corso c : tuttiCorsi) {
+            if (c == null || c.getData() == null || c.getOrario() == null) {
+                continue;
             }
-            prenotazioni = filtrate;
+            boolean expired = c.getData().isBefore(today)
+                    || (c.getData().isEqual(today) && !c.getOrario().isAfter(now));
+            if (!expired) {
+                corsiAttivi.add(c);
+            }
         }
 
-        // 3) Filtro per email (se presente)
+        // 3) Applico filtri: corsoId, dataDa, dataA
+        if (corsoId != null) {
+            List<Corso> filtrati = new ArrayList<Corso>();
+            for (Corso c : corsiAttivi) {
+                if (c.getId() != null && c.getId().equals(corsoId)) {
+                    filtrati.add(c);
+                }
+            }
+            corsiAttivi = filtrati;
+        }
+
+        if (dataDa != null) {
+            List<Corso> filtrati = new ArrayList<Corso>();
+            for (Corso c : corsiAttivi) {
+                if (c.getData() != null && !c.getData().isBefore(dataDa)) {
+                    filtrati.add(c);
+                }
+            }
+            corsiAttivi = filtrati;
+        }
+
+        if (dataA != null) {
+            List<Corso> filtrati = new ArrayList<Corso>();
+            for (Corso c : corsiAttivi) {
+                if (c.getData() != null && !c.getData().isAfter(dataA)) {
+                    filtrati.add(c);
+                }
+            }
+            corsiAttivi = filtrati;
+        }
+
+        // 4) Filtro email: tengo solo i corsi dove quell'utente è prenotato (se
+        // valorizzata)
         String emailTrim = null;
         if (email != null && !email.trim().isEmpty()) {
             emailTrim = email.trim();
-            List<Prenotazione> filtrate = new ArrayList<Prenotazione>();
-            for (Prenotazione p : prenotazioni) {
-                if (p.getUtente() != null && p.getUtente().getEmail() != null
-                        && p.getUtente().getEmail().equalsIgnoreCase(emailTrim)) {
-                    filtrate.add(p);
+
+            List<Prenotazione> prenUtente = prenotazioneRepository.findByUtente_Email(emailTrim);
+            java.util.Set<Integer> corsoIds = new java.util.HashSet<Integer>();
+            for (Prenotazione p : prenUtente) {
+                if (p != null && p.getCorso() != null && p.getCorso().getId() != null) {
+                    corsoIds.add(p.getCorso().getId());
                 }
             }
-            prenotazioni = filtrate;
-        }
 
-        // 4) Filtro dataDa (se presente) - inclusivo
-        if (dataDa != null) {
-            List<Prenotazione> filtrate = new ArrayList<Prenotazione>();
-            for (Prenotazione p : prenotazioni) {
-                if (p.getCorso() != null && p.getCorso().getData() != null
-                        && !p.getCorso().getData().isBefore(dataDa)) {
-                    filtrate.add(p);
+            List<Corso> filtrati = new ArrayList<Corso>();
+            for (Corso c : corsiAttivi) {
+                if (c.getId() != null && corsoIds.contains(c.getId())) {
+                    filtrati.add(c);
                 }
             }
-            prenotazioni = filtrate;
+            corsiAttivi = filtrati;
         }
 
-        // 5) Filtro dataA (se presente) - inclusivo
-        if (dataA != null) {
-            List<Prenotazione> filtrate = new ArrayList<Prenotazione>();
-            for (Prenotazione p : prenotazioni) {
-                if (p.getCorso() != null && p.getCorso().getData() != null
-                        && !p.getCorso().getData().isAfter(dataA)) {
-                    filtrate.add(p);
-                }
-            }
-            prenotazioni = filtrate;
-        }
-
-        // 6) Ordinamento: data/ora ASC, confermati prima delle riserve, createdAt (più
-        // vecchi prima)
-        Collections.sort(prenotazioni, new Comparator<Prenotazione>() {
+        // 5) Ordine cronologico (data ASC, ora ASC)
+        Collections.sort(corsiAttivi, new Comparator<Corso>() {
             @Override
-            public int compare(Prenotazione p1, Prenotazione p2) {
-
-                // 1) data corso ASC
-                if (p1.getCorso() != null && p2.getCorso() != null
-                        && p1.getCorso().getData() != null && p2.getCorso().getData() != null) {
-                    int cmpData = p1.getCorso().getData().compareTo(p2.getCorso().getData());
-                    if (cmpData != 0) {
-                        return cmpData;
-                    }
-                }
-
-                // 2) orario corso ASC
-                if (p1.getCorso() != null && p2.getCorso() != null
-                        && p1.getCorso().getOrario() != null && p2.getCorso().getOrario() != null) {
-                    int cmpOra = p1.getCorso().getOrario().compareTo(p2.getCorso().getOrario());
-                    if (cmpOra != 0) {
-                        return cmpOra;
-                    }
-                }
-
-                // 3) confermati prima delle riserve
-                if (p1.isRiserva() && !p2.isRiserva()) {
-                    return 1;
-                }
-                if (!p1.isRiserva() && p2.isRiserva()) {
-                    return -1;
-                }
-
-                // 4) createdAt (più vecchi prima)
-                if (p1.getCreatedAt() == null && p2.getCreatedAt() == null) {
-                    return 0;
-                }
-                if (p1.getCreatedAt() == null) {
-                    return -1;
-                }
-                if (p2.getCreatedAt() == null) {
-                    return 1;
-                }
-
-                return p1.getCreatedAt().compareTo(p2.getCreatedAt());
+            public int compare(Corso c1, Corso c2) {
+                int cmpData = c1.getData().compareTo(c2.getData());
+                if (cmpData != 0)
+                    return cmpData;
+                return c1.getOrario().compareTo(c2.getOrario());
             }
         });
 
-        // 7) Model
-        model.addAttribute("prenotazioni", prenotazioni);
-        model.addAttribute("corsi", corsoRepository.findAll());
+        // 6) Conteggi prenotati/riserve per corso
+        java.util.Map<Integer, Integer> confermatiMap = new java.util.HashMap<Integer, Integer>();
+        java.util.Map<Integer, Integer> riserveMap = new java.util.HashMap<Integer, Integer>();
 
-        // filtri sticky
+        for (Corso c : corsiAttivi) {
+            confermatiMap.put(c.getId(), prenotazioneRepository.countByCorsoAndRiservaFalse(c));
+            riserveMap.put(c.getId(), prenotazioneRepository.countByCorsoAndRiservaTrue(c));
+        }
+
+        // 7) Model
+        model.addAttribute("corsi", corsiAttivi);
+        model.addAttribute("confermatiMap", confermatiMap);
+        model.addAttribute("riserveMap", riserveMap);
+
+        // sticky filtri
         model.addAttribute("selectedCorsoId", corsoId);
         model.addAttribute("emailFilter", emailTrim != null ? emailTrim : email);
         model.addAttribute("dataDa", dataDa);
         model.addAttribute("dataA", dataA);
-
-        // etichetta filtro (opzionale)
-        String filtro = "Tutte";
-        if (corsoId != null) {
-            filtro = "Corso ID: " + corsoId;
-        }
-        if (emailTrim != null) {
-            if (!"Tutte".equals(filtro)) {
-                filtro = filtro + " + Email: " + emailTrim;
-            } else {
-                filtro = "Email: " + emailTrim;
-            }
-        }
-        if (dataDa != null || dataA != null) {
-            String range = "";
-            if (dataDa != null) {
-                range += "Dal " + dataDa;
-            }
-            if (dataA != null) {
-                if (!range.isEmpty()) {
-                    range += " ";
-                }
-                range += "Al " + dataA;
-            }
-            if (!range.isEmpty()) {
-                if (!"Tutte".equals(filtro)) {
-                    filtro = filtro + " + " + range;
-                } else {
-                    filtro = range;
-                }
-            }
-        }
-        model.addAttribute("filtro", filtro);
 
         return "admin-prenotazioni";
     }
