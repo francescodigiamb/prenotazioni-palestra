@@ -545,4 +545,31 @@ public class ControllerAdmin {
         return "redirect:/admin/prenotazioni?corsoId=" + id;
     }
 
+    // Eliminazione corsi
+    @PostMapping("/corsi-archiviati/elimina-tutti")
+    public String eliminaTuttiCorsiArchiviati(RedirectAttributes redirectAttributes) {
+
+        List<Corso> tutti = corsoRepository.findAll();
+
+        List<Corso> archiviati = new ArrayList<Corso>();
+        for (Corso c : tutti) {
+            if (c != null && isExpired(c)) {
+                archiviati.add(c);
+            }
+        }
+
+        int eliminati = 0;
+
+        for (Corso c : archiviati) {
+            // prima prenotazioni collegate
+            prenotazioneRepository.deleteByCorso_Id(c.getId());
+            // poi corso
+            corsoRepository.deleteById(c.getId());
+            eliminati++;
+        }
+
+        redirectAttributes.addFlashAttribute("success", "Eliminati " + eliminati + " corsi archiviati.");
+        return "redirect:/admin/corsi-archiviati";
+    }
+
 }
