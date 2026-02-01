@@ -6,6 +6,7 @@ import it.palestra.prenotazioni_palestra.model.Prenotazione;
 import it.palestra.prenotazioni_palestra.repository.CorsoRepository;
 import it.palestra.prenotazioni_palestra.repository.ModelloCorsoRepository;
 import it.palestra.prenotazioni_palestra.repository.PrenotazioneRepository;
+import it.palestra.prenotazioni_palestra.service.CleanupService;
 import it.palestra.prenotazioni_palestra.service.PianificazioneService;
 
 import org.springframework.format.annotation.DateTimeFormat;
@@ -32,15 +33,17 @@ public class ControllerAdmin {
     private final PrenotazioneRepository prenotazioneRepository;
     private final ModelloCorsoRepository modelloRepo;
     private final PianificazioneService pianificazioneService;
+    private final CleanupService cleanupService;
 
     // COSTRUTTORE
     public ControllerAdmin(CorsoRepository corsoRepository, PrenotazioneRepository prenotazioneRepository,
             ModelloCorsoRepository modelloRepo,
-            PianificazioneService pianificazioneService) {
+            PianificazioneService pianificazioneService, CleanupService cleanupService) {
         this.corsoRepository = corsoRepository;
         this.prenotazioneRepository = prenotazioneRepository;
         this.modelloRepo = modelloRepo;
         this.pianificazioneService = pianificazioneService;
+        this.cleanupService = cleanupService;
     }
 
     private boolean isExpired(Corso c) {
@@ -549,24 +552,7 @@ public class ControllerAdmin {
     @PostMapping("/corsi-archiviati/elimina-tutti")
     public String eliminaTuttiCorsiArchiviati(RedirectAttributes redirectAttributes) {
 
-        List<Corso> tutti = corsoRepository.findAll();
-
-        List<Corso> archiviati = new ArrayList<Corso>();
-        for (Corso c : tutti) {
-            if (c != null && isExpired(c)) {
-                archiviati.add(c);
-            }
-        }
-
-        int eliminati = 0;
-
-        for (Corso c : archiviati) {
-            // prima prenotazioni collegate
-            prenotazioneRepository.deleteByCorso_Id(c.getId());
-            // poi corso
-            corsoRepository.deleteById(c.getId());
-            eliminati++;
-        }
+        int eliminati = cleanupService.eliminaTuttiCorsiArchiviati();
 
         redirectAttributes.addFlashAttribute("success", "Eliminati " + eliminati + " corsi archiviati.");
         return "redirect:/admin/corsi-archiviati";
