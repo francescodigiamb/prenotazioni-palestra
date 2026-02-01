@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Email Test (Admin)</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body>
+    <div class="container py-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="m-0">Test invio email</h1>
+            <a href="/admin/prenotazioni" class="btn btn-outline-secondary">Indietro</a>
+        </div>
+
+        <div th:replace="~{fragments :: alerts}"></div>
+
+        <form method="post" th:action="@{/admin/email-test}" class="row g-2">
+            <div class="col-12 col-md-8">
+                <label class="form-label">Destinatario</label>
+                <input class="form-control" type="email" name="to" placeholder="utente@email.com" required>
+            </div>
+            <div class="col-12 col-md-4 d-flex align-items-end">
+                <button class="btn btn-primary w-100" type="submit">Invia email test</button>
+            </div>
+        </form>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

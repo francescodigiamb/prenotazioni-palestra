@@ -3,6 +3,7 @@ package it.palestra.prenotazioni_palestra.controller;
 import it.palestra.prenotazioni_palestra.dto.RegistrationForm;
 import it.palestra.prenotazioni_palestra.model.Utente;
 import it.palestra.prenotazioni_palestra.repository.UtenteRepository;
+import it.palestra.prenotazioni_palestra.service.EmailService;
 import it.palestra.prenotazioni_palestra.service.VerificationService;
 import jakarta.validation.Valid;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -18,12 +19,14 @@ public class ControllerAuth {
     private final UtenteRepository utenteRepository;
     private final PasswordEncoder passwordEncoder;
     private final VerificationService verificationService;
+    private final EmailService emailService;
 
     public ControllerAuth(UtenteRepository utenteRepository, PasswordEncoder passwordEncoder,
-            VerificationService verificationService) {
+            VerificationService verificationService, EmailService emailService) {
         this.utenteRepository = utenteRepository;
         this.passwordEncoder = passwordEncoder;
         this.verificationService = verificationService;
+        this.emailService = emailService;
     }
 
     @GetMapping("/login")
@@ -62,10 +65,14 @@ public class ControllerAuth {
         u.setRuolo("UTENTE");
         utenteRepository.save(u);
 
-        // 🔴 IMPORTANTE: chiamata qui
+        // ✅ EMAIL conferma registrazione (NO conferma prenotazione, solo registrazione)
+        emailService.inviaConfermaRegistrazione(u.getEmail(), u.getNome());
+
+        // email verifica
         verificationService.sendVerification(u);
 
         ra.addFlashAttribute("success", "Registrazione completata! Ora puoi accedere.");
         return "redirect:/login";
     }
+
 }

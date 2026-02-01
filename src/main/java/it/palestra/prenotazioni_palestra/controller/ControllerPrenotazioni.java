@@ -6,6 +6,8 @@ import it.palestra.prenotazioni_palestra.model.Utente;
 import it.palestra.prenotazioni_palestra.repository.CorsoRepository;
 import it.palestra.prenotazioni_palestra.repository.PrenotazioneRepository;
 import it.palestra.prenotazioni_palestra.repository.UtenteRepository;
+import it.palestra.prenotazioni_palestra.service.EmailService;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
@@ -27,13 +29,15 @@ public class ControllerPrenotazioni {
     private final CorsoRepository corsoRepository;
     private final UtenteRepository utenteRepository;
     private final PrenotazioneRepository prenotazioneRepository;
+    private final EmailService emailService;
 
     public ControllerPrenotazioni(CorsoRepository corsoRepository,
             UtenteRepository utenteRepository,
-            PrenotazioneRepository prenotazioneRepository) {
+            PrenotazioneRepository prenotazioneRepository, EmailService emailService) {
         this.corsoRepository = corsoRepository;
         this.utenteRepository = utenteRepository;
         this.prenotazioneRepository = prenotazioneRepository;
+        this.emailService = emailService;
     }
 
     // ====== CREA PRENOTAZIONE (POST) ======
@@ -292,8 +296,30 @@ public class ControllerPrenotazioni {
             return "redirect:/prenotazioni/mie";
         }
 
+        // ✅ Salvo i dati PRIMA della delete (servono per la mail admin)
+        String corsoNome = (p.getCorso() != null && p.getCorso().getNome() != null) ? p.getCorso().getNome() : "-";
+        String data = (p.getCorso() != null && p.getCorso().getData() != null)
+                ? p.getCorso().getData().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                : "-";
+        String ora = (p.getCorso() != null && p.getCorso().getOrario() != null)
+                ? p.getCorso().getOrario().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"))
+                : "-";
+
+        String utenteNome = (p.getUtente() != null && p.getUtente().getNome() != null) ? p.getUtente().getNome() : "-";
+        String utenteCognome = (p.getUtente() != null && p.getUtente().getCognome() != null)
+                ? p.getUtente().getCognome()
+                : "-";
+        String utenteEmail = (p.getUtente() != null && p.getUtente().getEmail() != null) ? p.getUtente().getEmail()
+                : "-";
+
+        // delete
         prenotazioneRepository.deleteById(prenotazioneId);
+
+        // ✅ MAIL admin: disdetta
+        emailService.inviaNotificaDisdettaAdmin(corsoNome, data, ora, utenteNome, utenteCognome, utenteEmail);
+
         redirectAttrs.addFlashAttribute("success", "Prenotazione cancellata correttamente.");
         return "redirect:/prenotazioni/mie";
     }
+
 }
