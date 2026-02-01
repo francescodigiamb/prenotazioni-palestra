@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Cookie Policy - FitnessClub</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body>
+    <div class="container py-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="m-0">Cookie Policy</h1>
+            <a href="/" class="btn btn-outline-secondary">Torna alla Home</a>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <p class="text-muted small mb-4">Ultimo aggiornamento: <span>30/01/2026</span></p>
+
+                <h5>1. Cosa sono i cookie</h5>
+                <p>I cookie sono piccoli file di testo che i siti salvano sul dispositivo dell’utente per migliorare
+                    l’esperienza di navigazione.</p>
+
+                <h5>2. Cookie utilizzati</h5>
+                <p>Questo sito utilizza cookie tecnici necessari al funzionamento (es. sessione login). Non utilizziamo
+                    cookie di profilazione.</p>
+
+                <h5>3. Gestione cookie</h5>
+                <p>Puoi gestire o disabilitare i cookie dalle impostazioni del browser. Disabilitando alcuni cookie,
+                    alcune funzionalità potrebbero non funzionare correttamente.</p>
+            </div>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments :: footer}"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>
