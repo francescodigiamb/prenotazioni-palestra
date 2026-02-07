@@ -7,6 +7,7 @@ import it.palestra.prenotazioni_palestra.repository.CorsoRepository;
 import it.palestra.prenotazioni_palestra.repository.ModelloCorsoRepository;
 import it.palestra.prenotazioni_palestra.repository.PrenotazioneRepository;
 import it.palestra.prenotazioni_palestra.service.CleanupService;
+import it.palestra.prenotazioni_palestra.service.EmailService;
 import it.palestra.prenotazioni_palestra.service.PianificazioneService;
 
 import org.springframework.format.annotation.DateTimeFormat;
@@ -34,16 +35,18 @@ public class ControllerAdmin {
     private final ModelloCorsoRepository modelloRepo;
     private final PianificazioneService pianificazioneService;
     private final CleanupService cleanupService;
+    private final EmailService emailService;
 
     // COSTRUTTORE
     public ControllerAdmin(CorsoRepository corsoRepository, PrenotazioneRepository prenotazioneRepository,
             ModelloCorsoRepository modelloRepo,
-            PianificazioneService pianificazioneService, CleanupService cleanupService) {
+            PianificazioneService pianificazioneService, CleanupService cleanupService, EmailService emailService) {
         this.corsoRepository = corsoRepository;
         this.prenotazioneRepository = prenotazioneRepository;
         this.modelloRepo = modelloRepo;
         this.pianificazioneService = pianificazioneService;
         this.cleanupService = cleanupService;
+        this.emailService = emailService;
     }
 
     private boolean isExpired(Corso c) {
@@ -529,8 +532,12 @@ public class ControllerAdmin {
             @RequestParam("prenotazioneId") Integer prenotazioneId,
             RedirectAttributes ra) {
 
-        Corso corso = corsoRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Corso non trovato"));
+        Optional<Corso> maybeCorso = corsoRepository.findById(id);
+        if (!maybeCorso.isPresent()) {
+            ra.addFlashAttribute("error", "Corso non trovato.");
+            return "redirect:/admin/prenotazioni";
+        }
+        Corso corso = maybeCorso.get();
 
         int prenNormali = prenotazioneRepository.countByCorsoAndRiservaFalse(corso);
         if (prenNormali >= corso.getMaxPosti()) {
@@ -538,11 +545,32 @@ public class ControllerAdmin {
             return "redirect:/admin/prenotazioni?corsoId=" + id;
         }
 
-        Prenotazione p = prenotazioneRepository.findById(prenotazioneId)
-                .orElseThrow(() -> new IllegalArgumentException("Prenotazione non trovata"));
+        Optional<Prenotazione> maybeP = prenotazioneRepository.findById(prenotazioneId);
+        if (!maybeP.isPresent()) {
+            ra.addFlashAttribute("error", "Prenotazione non trovata.");
+            return "redirect:/admin/prenotazioni?corsoId=" + id;
+        }
 
+        Prenotazione p = maybeP.get();
+
+        // promuovi
         p.setRiserva(false);
         prenotazioneRepository.save(p);
+
+        // ✅ invio email all’utente promosso
+        String to = (p.getUtente() != null && p.getUtente().getEmail() != null) ? p.getUtente().getEmail() : null;
+        if (to != null && !to.trim().isEmpty()) {
+
+            String nomeCorso = (corso.getNome() != null) ? corso.getNome() : "Corso";
+            String data = (corso.getData() != null)
+                    ? corso.getData().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                    : "-";
+            String ora = (corso.getOrario() != null)
+                    ? corso.getOrario().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"))
+                    : "-";
+
+            emailService.inviaPromozioneDaRiserva(to.trim(), nomeCorso, data, ora);
+        }
 
         ra.addFlashAttribute("success", "Prenotazione promossa dalla lista d'attesa.");
         return "redirect:/admin/prenotazioni?corsoId=" + id;

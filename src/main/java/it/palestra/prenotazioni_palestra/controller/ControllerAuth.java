@@ -71,8 +71,10 @@ public class ControllerAuth {
         // email verifica
         verificationService.sendVerification(u);
 
-        ra.addFlashAttribute("success", "Registrazione completata! Ora puoi accedere.");
+        ra.addFlashAttribute("success",
+                "Registrazione quasi completata! Controlla la tua email (Controlla anche in Indesiderata) e clicca sul link di verifica per attivare l’account.");
         return "redirect:/login";
+
     }
 
 }
