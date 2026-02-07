@@ -33,11 +33,13 @@ public class VerificationService {
         String link = baseUrl + "/verify?token=" + token.getToken();
 
         // 3) prepara email
-        String subject = "Verifica il tuo account - FitnessClub";
+        String subject = "Completa la registrazione - FitnessClub";
 
         String body = "Ciao " + utente.getNome() + ",\n\n"
-                + "per attivare il tuo account clicca sul link qui sotto:\n\n"
+                + "la registrazione è stata creata con successo.\n"
+                + "Per attivare l’account clicca sul link qui sotto:\n\n"
                 + link + "\n\n"
+                + "Email registrata: " + utente.getEmail() + "\n"
                 + "Il link scade tra 60 minuti.\n\n"
                 + "A presto,\nFitnessClub";
 

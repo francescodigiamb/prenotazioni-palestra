@@ -65,9 +65,6 @@ public class ControllerAuth {
         u.setRuolo("UTENTE");
         utenteRepository.save(u);
 
-        // ✅ EMAIL conferma registrazione (NO conferma prenotazione, solo registrazione)
-        emailService.inviaConfermaRegistrazione(u.getEmail(), u.getNome());
-
         // email verifica
         verificationService.sendVerification(u);
 
