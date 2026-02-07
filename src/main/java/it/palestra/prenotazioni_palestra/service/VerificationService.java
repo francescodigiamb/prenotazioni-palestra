@@ -10,15 +10,21 @@ import org.springframework.stereotype.Service;
 public class VerificationService {
 
     private final VerificationTokenRepository tokenRepo;
+    private final EmailService emailService;
 
     @Value("${app.base-url}")
     private String baseUrl;
 
-    public VerificationService(VerificationTokenRepository tokenRepo) {
+    public VerificationService(VerificationTokenRepository tokenRepo,
+            EmailService emailService,
+            @Value("${app.base-url}") String baseUrl) {
         this.tokenRepo = tokenRepo;
+        this.emailService = emailService;
+        this.baseUrl = baseUrl;
     }
 
     public void sendVerification(Utente utente) {
+
         // 1) crea token valido 60 minuti
         VerificationToken token = VerificationToken.of(utente, 60);
         tokenRepo.save(token);
@@ -26,7 +32,17 @@ public class VerificationService {
         // 2) costruisci link
         String link = baseUrl + "/verify?token=" + token.getToken();
 
-        // 3) per ora NON inviamo mail, logghiamo solo il link
-        System.out.println("[VERIFICA] Link di verifica per " + utente.getEmail() + ": " + link);
+        // 3) prepara email
+        String subject = "Verifica il tuo account - FitnessClub";
+
+        String body = "Ciao " + utente.getNome() + ",\n\n"
+                + "per attivare il tuo account clicca sul link qui sotto:\n\n"
+                + link + "\n\n"
+                + "Il link scade tra 60 minuti.\n\n"
+                + "A presto,\nFitnessClub";
+
+        // 4) invia
+        emailService.inviaEmailSemplice(utente.getEmail(), subject, body);
     }
+
 }
