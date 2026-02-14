@@ -66,12 +66,20 @@ public class ControllerAuth {
         utenteRepository.save(u);
 
         // email verifica
-        verificationService.sendVerification(u);
+        try {
+            verificationService.sendVerification(u);
 
-        ra.addFlashAttribute("success",
-                "Registrazione quasi completata! Controlla la tua email (Controlla anche in Indesiderata) e clicca sul link di verifica per attivare l’account.");
+            ra.addFlashAttribute("success",
+                    "Registrazione quasi completata! Controlla la tua email (Controlla anche in Indesiderata) e clicca sul link di verifica per attivare l’account.");
+        } catch (Exception e) {
+            // Non bloccare la registrazione se l'SMTP non è raggiungibile
+            System.out.println("Invio email verifica FALLITO per " + u.getEmail() + ": " + e.getMessage());
+
+            ra.addFlashAttribute("warning",
+                    "Registrazione creata, ma non siamo riusciti a inviare l’email di verifica. " +
+                            "Riprova più tardi o contatta l’amministratore.");
+        }
         return "redirect:/login";
-
     }
 
 }
