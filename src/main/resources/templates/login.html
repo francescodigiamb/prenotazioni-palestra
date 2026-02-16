@@ -25,6 +25,16 @@
             </div>
             <button class="btn btn-primary w-100" type="submit">Entra</button>
         </form>
+        <hr class="my-3">
+
+        <p class="mb-2">Non hai ricevuto l’email di verifica?</p>
+
+        <form th:action="@{/reinvia-verifica}" method="post" class="d-flex gap-2 flex-wrap">
+            <input type="email" name="email" class="form-control" placeholder="Inserisci la tua email" required
+                style="max-width:320px;">
+            <button type="submit" class="btn btn-outline-primary">Reinvia</button>
+        </form>
+
         <!-- Tasto Registrati -->
         <div class="mt-3 text-center">
             <span class="text-muted">Non hai ancora un account?</span>

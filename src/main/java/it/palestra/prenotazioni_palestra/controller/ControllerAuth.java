@@ -82,4 +82,21 @@ public class ControllerAuth {
         return "redirect:/login";
     }
 
+    @PostMapping("/reinvia-verifica")
+    public String reinviaVerifica(@RequestParam("email") String email, RedirectAttributes ra) {
+
+        // Messaggio neutro (vale sempre, anche se l'email non esiste)
+        ra.addFlashAttribute("success",
+                "Se l'account esiste e non è ancora verificato, abbiamo reinviato l'email di verifica. Controlla anche in Indesiderata.");
+
+        try {
+            verificationService.reinviaVerifica(email);
+        } catch (Exception e) {
+            System.out.println("Reinvio verifica fallito per " + email + ": " + e.getMessage());
+            // non cambiare messaggio per non rivelare info
+        }
+
+        return "redirect:/login";
+    }
+
 }

@@ -2,6 +2,7 @@ package it.palestra.prenotazioni_palestra.service;
 
 import it.palestra.prenotazioni_palestra.model.Utente;
 import it.palestra.prenotazioni_palestra.model.VerificationToken;
+import it.palestra.prenotazioni_palestra.repository.UtenteRepository;
 import it.palestra.prenotazioni_palestra.repository.VerificationTokenRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -19,18 +20,20 @@ public class VerificationService {
 
     private final String baseUrl;
     private final String appMailFrom;
+    private final UtenteRepository utenteRepo;
 
     public VerificationService(
             VerificationTokenRepository tokenRepo,
             // EmailService emailService,
             BrevoEmailService brevoEmailService,
             @Value("${app.base-url}") String baseUrl,
-            @Value("${app.mail.from}") String appMailFrom) {
+            @Value("${app.mail.from}") String appMailFrom, UtenteRepository utenteRepo) {
         this.tokenRepo = tokenRepo;
         // this.emailService = emailService;
         this.brevoEmailService = brevoEmailService;
         this.baseUrl = baseUrl;
         this.appMailFrom = appMailFrom;
+        this.utenteRepo = utenteRepo;
     }
 
     public void sendVerification(Utente utente) {
@@ -72,4 +75,23 @@ public class VerificationService {
         // Brevo API (nuovo)
         brevoEmailService.sendVerificationEmail(appMailFrom, utente.getEmail(), subject, html);
     }
+
+    public void reinviaVerifica(String email) {
+
+        // 1) cerca utente
+        Utente utente = utenteRepo.findByEmail(email).orElse(null);
+        if (utente == null)
+            return;
+
+        // 2) se già attivo/verificato non fare nulla
+        if (utente.isEnabled())
+            return;
+
+        // 3) (opzionale ma consigliato) elimina token precedenti non usati dell’utente
+        tokenRepo.deleteAllByUtente_Id(utente.getId());
+
+        // 4) rigenera e invia
+        sendVerification(utente);
+    }
+
 }
