@@ -18,7 +18,7 @@ public class PasswordResetController {
     // --- FORM: "Password dimenticata" ---
     @GetMapping("/forgot-password")
     public String forgotPasswordForm() {
-        return "auth/forgot-password";
+        return "forgot-password";
     }
 
     @PostMapping("/forgot-password")
@@ -29,7 +29,7 @@ public class PasswordResetController {
 
         model.addAttribute("success",
                 "Se l'email è corretta, riceverai un link per reimpostare la password entro pochi minuti.");
-        return "auth/forgot-password";
+        return "forgot-password";
     }
 
     // --- FORM: reset con token ---
