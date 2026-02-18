@@ -42,7 +42,7 @@ public class PasswordResetController {
             return "auth/reset-password";
         } catch (Exception ex) {
             model.addAttribute("error", "Link non valido o scaduto. Richiedi un nuovo reset password.");
-            return "auth/reset-password-error";
+            return "reset-password-error";
         }
     }
 
@@ -55,22 +55,22 @@ public class PasswordResetController {
         if (password == null || password.length() < 6) {
             model.addAttribute("error", "La password deve contenere almeno 6 caratteri.");
             model.addAttribute("token", token);
-            return "auth/reset-password";
+            return "reset-password";
         }
 
         if (!password.equals(confirmPassword)) {
             model.addAttribute("error", "Le password non coincidono.");
             model.addAttribute("token", token);
-            return "auth/reset-password";
+            return "reset-password";
         }
 
         try {
             passwordResetService.resetPassword(token, password);
             model.addAttribute("success", "Password aggiornata con successo. Ora puoi effettuare il login.");
-            return "auth/login";
+            return "login";
         } catch (Exception ex) {
             model.addAttribute("error", "Impossibile aggiornare la password. Il link potrebbe essere scaduto.");
-            return "auth/reset-password-error";
+            return "reset-password-error";
         }
     }
 }
