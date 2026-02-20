@@ -82,6 +82,12 @@ public class ControllerAuth {
         return "redirect:/login";
     }
 
+    // Rinvio token per verifica account
+    @GetMapping("/reinvia-verifica")
+    public String paginaReinviaVerifica() {
+        return "reinvia-verifica";
+    }
+
     @PostMapping("/reinvia-verifica")
     public String reinviaVerifica(@RequestParam("email") String email, RedirectAttributes ra) {
 
