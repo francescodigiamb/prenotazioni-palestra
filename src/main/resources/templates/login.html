@@ -27,8 +27,9 @@
         </form>
         <!-- Password dimenticata -->
         <div class="text-end mt-2">
-            <a th:href="@{/forgot-password}" class="small">Password dimenticata?</a>
-            <a th:href="@{/reinvia-verifica}" class="small">Non hai ricevuto l’email di verifica?</a>
+            <a th:href="@{/forgot-password}">Password dimenticata?</a>
+            <span class="mx-2 text-muted">|</span>
+            <a th:href="@{/reinvia-verifica}">Reinvia email di verifica</a>
         </div>
         <!-- Tasto Registrati -->
         <div class="mt-3 text-center">

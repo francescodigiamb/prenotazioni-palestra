@@ -39,7 +39,7 @@ public class PasswordResetController {
         try {
             passwordResetService.validateToken(token);
             model.addAttribute("token", token);
-            return "auth/reset-password";
+            return "reset-password";
         } catch (Exception ex) {
             model.addAttribute("error", "Link non valido o scaduto. Richiedi un nuovo reset password.");
             return "reset-password-error";
