@@ -27,24 +27,87 @@ public class ModelloCorso {
 
     private Boolean lunedi;
     private LocalTime orarioLunedi;
+    private LocalTime orarioLunedi2;
 
     private Boolean martedi;
     private LocalTime orarioMartedi;
+    private LocalTime orarioMartedi2;
 
     private Boolean mercoledi;
     private LocalTime orarioMercoledi;
+    private LocalTime orarioMercoledi2;
 
     private Boolean giovedi;
     private LocalTime orarioGiovedi;
+    private LocalTime orarioGiovedi2;
 
     private Boolean venerdi;
     private LocalTime orarioVenerdi;
+    private LocalTime orarioVenerdi2;
 
     private Boolean sabato;
     private LocalTime orarioSabato;
+    private LocalTime orarioSabato2;
+
+    public LocalTime getOrarioLunedi2() {
+        return orarioLunedi2;
+    }
+
+    public void setOrarioLunedi2(LocalTime orarioLunedi2) {
+        this.orarioLunedi2 = orarioLunedi2;
+    }
+
+    public LocalTime getOrarioMartedi2() {
+        return orarioMartedi2;
+    }
+
+    public void setOrarioMartedi2(LocalTime orarioMartedi2) {
+        this.orarioMartedi2 = orarioMartedi2;
+    }
+
+    public LocalTime getOrarioMercoledi2() {
+        return orarioMercoledi2;
+    }
+
+    public void setOrarioMercoledi2(LocalTime orarioMercoledi2) {
+        this.orarioMercoledi2 = orarioMercoledi2;
+    }
+
+    public LocalTime getOrarioGiovedi2() {
+        return orarioGiovedi2;
+    }
+
+    public void setOrarioGiovedi2(LocalTime orarioGiovedi2) {
+        this.orarioGiovedi2 = orarioGiovedi2;
+    }
+
+    public LocalTime getOrarioVenerdi2() {
+        return orarioVenerdi2;
+    }
+
+    public void setOrarioVenerdi2(LocalTime orarioVenerdi2) {
+        this.orarioVenerdi2 = orarioVenerdi2;
+    }
+
+    public LocalTime getOrarioSabato2() {
+        return orarioSabato2;
+    }
+
+    public void setOrarioSabato2(LocalTime orarioSabato2) {
+        this.orarioSabato2 = orarioSabato2;
+    }
+
+    public LocalTime getOrarioDomenica2() {
+        return orarioDomenica2;
+    }
+
+    public void setOrarioDomenica2(LocalTime orarioDomenica2) {
+        this.orarioDomenica2 = orarioDomenica2;
+    }
 
     private Boolean domenica;
     private LocalTime orarioDomenica;
+    private LocalTime orarioDomenica2;
 
     // ====== Getter / Setter ======
 

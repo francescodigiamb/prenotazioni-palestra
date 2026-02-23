@@ -29,13 +29,33 @@ public class PianificazioneService {
 
         int creati = 0;
 
+        // LUNEDÌ
         creati += generaPerGiorno(m, m.getLunedi(), m.getOrarioLunedi(), DayOfWeek.MONDAY, dal, al);
+        creati += generaPerGiorno(m, m.getLunedi(), m.getOrarioLunedi2(), DayOfWeek.MONDAY, dal, al);
+
+        // MARTEDÌ
         creati += generaPerGiorno(m, m.getMartedi(), m.getOrarioMartedi(), DayOfWeek.TUESDAY, dal, al);
+        creati += generaPerGiorno(m, m.getMartedi(), m.getOrarioMartedi2(), DayOfWeek.TUESDAY, dal, al);
+
+        // MERCOLEDÌ
         creati += generaPerGiorno(m, m.getMercoledi(), m.getOrarioMercoledi(), DayOfWeek.WEDNESDAY, dal, al);
+        creati += generaPerGiorno(m, m.getMercoledi(), m.getOrarioMercoledi2(), DayOfWeek.WEDNESDAY, dal, al);
+
+        // GIOVEDÌ
         creati += generaPerGiorno(m, m.getGiovedi(), m.getOrarioGiovedi(), DayOfWeek.THURSDAY, dal, al);
+        creati += generaPerGiorno(m, m.getGiovedi(), m.getOrarioGiovedi2(), DayOfWeek.THURSDAY, dal, al);
+
+        // VENERDÌ
         creati += generaPerGiorno(m, m.getVenerdi(), m.getOrarioVenerdi(), DayOfWeek.FRIDAY, dal, al);
+        creati += generaPerGiorno(m, m.getVenerdi(), m.getOrarioVenerdi2(), DayOfWeek.FRIDAY, dal, al);
+
+        // SABATO
         creati += generaPerGiorno(m, m.getSabato(), m.getOrarioSabato(), DayOfWeek.SATURDAY, dal, al);
+        creati += generaPerGiorno(m, m.getSabato(), m.getOrarioSabato2(), DayOfWeek.SATURDAY, dal, al);
+
+        // DOMENICA
         creati += generaPerGiorno(m, m.getDomenica(), m.getOrarioDomenica(), DayOfWeek.SUNDAY, dal, al);
+        creati += generaPerGiorno(m, m.getDomenica(), m.getOrarioDomenica2(), DayOfWeek.SUNDAY, dal, al);
 
         return creati;
     }
