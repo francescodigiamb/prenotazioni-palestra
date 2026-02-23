@@ -24,7 +24,7 @@
             <table class="table table-striped table-hover align-middle">
                 <thead class="table-dark">
                     <tr>
-                        <th>ID</th>
+                        <!-- <th>ID</th> -->
                         <th>Nome</th>
                         <th>Capienza</th>
                         <th>Attivo</th>
@@ -33,9 +33,9 @@
                 </thead>
                 <tbody>
                     <tr th:each="m : ${modelli}">
-                        <td th:text="${m.id}">1</td>
+                        <!-- <td th:text="${m.id}">1</td> -->
                         <td th:text="${m.nome}">Pilates</td>
-                        <td th:text="${m.maxPostiDefault}">12</td>
+                        <td th:text="${m.maxPostiDefault}">20</td>
                         <td>
                             <span class="badge" th:text="${m.attivo} ? 'Attivo' : 'Disattivato'"
                                 th:classappend="${m.attivo} ? ' bg-success' : ' bg-secondary'">
