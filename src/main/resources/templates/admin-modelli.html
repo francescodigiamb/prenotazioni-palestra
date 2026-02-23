@@ -50,8 +50,11 @@
                             <!-- Form genera lezioni -->
                             <form th:action="@{/admin/modelli/{id}/genera(id=${m.id})}" method="post"
                                 class="d-flex align-items-center gap-1">
-                                <input type="date" name="dal" class="form-control form-control-sm" required>
-                                <input type="date" name="al" class="form-control form-control-sm" required>
+                                <input type="date" name="dal" class="form-control form-control-sm"
+                                    style="color-scheme: light; background-color: #ffffff; color: #212529;" required>
+
+                                <input type="date" name="al" class="form-control form-control-sm"
+                                    style="color-scheme: light; background-color: #ffffff; color: #212529;" required>
                                 <button class="btn btn-sm btn-outline-success" type="submit">Genera</button>
                             </form>
                         </td>
