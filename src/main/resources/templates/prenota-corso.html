@@ -12,8 +12,8 @@
             <h1 class="text-dark m-0" th:text="'Prenota: ' + ${corso.nome}">Prenota: Nome corso</h1>
             <div class="d-flex gap-2">
                 <a href="/" class="btn btn-outline-secondary">Home</a>
-                <a href="/corsi" class="btn btn-outline-primary">Torna ai corsi</a>
-                <a th:href="@{|/corsi/${corso.id}|}" class="btn btn-outline-dark">Vai al dettaglio</a>
+                <a href="/corsi" class="btn btn-outline-secondary">Torna ai corsi</a>
+                <a th:href="@{|/corsi/${corso.id}|}" class="btn btn-outline-secondary">Vai al dettaglio</a>
             </div>
         </div>
 
@@ -60,7 +60,7 @@
                         </div>
 
                         <div class="d-grid">
-                            <button type="submit" class="btn btn-success btn-lg" th:disabled="${completamentePieno}">
+                            <button type="submit" class="btn btn-success btn" th:disabled="${completamentePieno}">
                                 <span th:if="${!soloRiserva}">Conferma prenotazione</span>
                                 <span th:if="${soloRiserva}">Conferma prenotazione (verrai inserito come riserva)</span>
                             </button>
@@ -76,8 +76,8 @@
 
 
                     <div class="d-grid gap-2 mt-3">
-                        <a href="/corsi" class="btn btn-outline-primary">Torna ai corsi</a>
-                        <a href="/" class="btn btn-outline-secondary">Home</a>
+                        <a href="/corsi" class="btn btn-outline-secondary btn">Torna ai corsi</a>
+                        <a href="/" class="btn btn-outline-secondary btn">Home</a>
                     </div>
                 </div>
             </div>

@@ -33,7 +33,7 @@
                 </div>
 
                 <!-- Elenco iscritti (nome + email) -->
-                <div class="p-3 bg-white rounded shadow-sm">
+                <div class="p-3 bg-white rounded shadow-sm" th:if="${isAdmin}">
                     <h5 class="mb-3">Iscritti al corso</h5>
 
                     <div th:if="${prenotazioniCorso == null or #lists.isEmpty(prenotazioniCorso)}"
@@ -48,7 +48,7 @@
                                 <tr>
                                     <!-- <th>#</th> -->
                                     <th>Nome</th>
-                                    <th>Email</th>
+                                    <th>Cognome</th>
                                     <th>Tipo</th>
                                     <th>Prenotato il</th>
                                 </tr>
@@ -56,8 +56,8 @@
                             <tbody>
                                 <tr th:each="p, stat : ${prenotazioniCorso}">
                                     <!-- <td th:text="${stat.index + 1}">1</td> -->
-                                    <td th:text="${p.utente != null ? p.utente.nome : 'N/D'}">Mario Rossi</td>
-                                    <td th:text="${p.utente != null ? p.utente.email : 'N/D'}">mario@example.com</td>
+                                    <td th:text="${p.utente != null ? p.utente.nome : 'N/D'}">Mario</td>
+                                    <td th:text="${p.utente != null ? p.utente.cognome : 'N/D'}">Rossi</td>
 
                                     <!-- Tipo prenotazione: normale o riserva -->
                                     <td>

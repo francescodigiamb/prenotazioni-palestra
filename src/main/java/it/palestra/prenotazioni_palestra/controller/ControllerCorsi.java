@@ -6,9 +6,11 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -142,65 +144,72 @@ public class ControllerCorsi {
 
     // GET /corsi/{id} -> dettaglio corso con posti disponibili
     @GetMapping("/corsi/{id}")
-    public String dettaglioCorso(@PathVariable Integer id, Model model) {
+    public String dettaglioCorso(@PathVariable Integer id, Model model, Authentication authentication) {
 
-        // 1) Carico il corso dall'id
+        // 0) Admin?
+        boolean isAdmin = authentication != null
+                && authentication.getAuthorities().stream()
+                        .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        model.addAttribute("isAdmin", isAdmin);
+
+        // 1) Carico il corso
         Corso corso = corsoRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Corso non trovato: " + id));
 
         // 2) Conteggio prenotazioni NORMALI (non riserva)
         int prenotatiNormali = prenotazioneRepository.countByCorsoAndRiservaFalse(corso);
 
-        // (opzionale ma utile) Conteggio prenotazioni in RISERVA
+        // (opzionale) Conteggio prenotazioni in RISERVA
         int prenotatiRiserve = prenotazioneRepository.countByCorsoAndRiservaTrue(corso);
 
-        // 3) Calcolo posti disponibili (solo posti normali, non conto le riserve)
+        // 3) Posti disponibili (solo posti normali)
         int postiTotali = corso.getMaxPosti();
         int postiDisponibili = postiTotali - prenotatiNormali;
         if (postiDisponibili < 0) {
             postiDisponibili = 0;
         }
 
-        // 4) Elenco prenotazioni (prima confermati, poi riserve; dentro: più vecchie
-        // prima)
-        List<Prenotazione> prenotazioniCorso = prenotazioneRepository.findByCorso(corso);
-
-        Collections.sort(prenotazioniCorso, new java.util.Comparator<Prenotazione>() {
-            @Override
-            public int compare(Prenotazione p1, Prenotazione p2) {
-
-                // Confermati prima delle riserve
-                if (p1.isRiserva() && !p2.isRiserva())
-                    return 1;
-                if (!p1.isRiserva() && p2.isRiserva())
-                    return -1;
-
-                // Ordine per createdAt (più vecchi prima)
-                if (p1.getCreatedAt() == null && p2.getCreatedAt() == null)
-                    return 0;
-                if (p1.getCreatedAt() == null)
-                    return -1;
-                if (p2.getCreatedAt() == null)
-                    return 1;
-
-                return p1.getCreatedAt().compareTo(p2.getCreatedAt());
-            }
-        });
-
         // Per badge “Nuovo” nelle ultime 24h
         LocalDateTime nowMinus24h = LocalDateTime.now().minusHours(24);
 
-        // 5) Aggiungo attributi al model per Thymeleaf
+        // 4) Attributi SEMPRE disponibili
         model.addAttribute("corso", corso);
-        // qui "prenotati" ora significa SOLO prenotazioni normali
         model.addAttribute("prenotati", prenotatiNormali);
         model.addAttribute("postiDisponibili", postiDisponibili);
-        model.addAttribute("prenotazioniCorso", prenotazioniCorso);
         model.addAttribute("nowMinus24h", nowMinus24h);
 
-        // extra info su riserve (se vuoi usarle nel template dopo)
+        // Extra info riserve (se vuoi usarle nel template)
         model.addAttribute("prenotatiRiserve", prenotatiRiserve);
         model.addAttribute("maxRiserve", 6);
+
+        // 5) SOLO ADMIN: elenco iscritti
+        if (isAdmin) {
+            List<Prenotazione> prenotazioniCorso = prenotazioneRepository.findByCorso(corso);
+
+            Collections.sort(prenotazioniCorso, new Comparator<Prenotazione>() {
+                @Override
+                public int compare(Prenotazione p1, Prenotazione p2) {
+
+                    // Confermati prima delle riserve
+                    if (p1.isRiserva() && !p2.isRiserva())
+                        return 1;
+                    if (!p1.isRiserva() && p2.isRiserva())
+                        return -1;
+
+                    // Ordine per createdAt (più vecchi prima)
+                    if (p1.getCreatedAt() == null && p2.getCreatedAt() == null)
+                        return 0;
+                    if (p1.getCreatedAt() == null)
+                        return -1;
+                    if (p2.getCreatedAt() == null)
+                        return 1;
+
+                    return p1.getCreatedAt().compareTo(p2.getCreatedAt());
+                }
+            });
+
+            model.addAttribute("prenotazioniCorso", prenotazioniCorso);
+        }
 
         return "corso-dettaglio";
     }
