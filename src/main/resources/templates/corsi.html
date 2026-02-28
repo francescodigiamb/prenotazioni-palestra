@@ -12,7 +12,6 @@
     <div class="container py-5">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1 class="text-dark m-0">Corsi disponibili</h1>
-            <a href="/" class="btn btn-outline-secondary">Torna alla Home</a>
         </div>
         <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-3">
             <p class="mb-2 mb-md-0 text-muted">
@@ -99,8 +98,8 @@
 
 
                     <div class="d-flex gap-2 mt-2">
-                        <!-- Prenota: principale, largo -->
-                        <a class="btn btn-success btn-sm flex-grow-1" th:href="@{|/corsi/${corso.id}/prenota|}"
+                        <!-- Prenota: principale -->
+                        <a class="btn btn-success btn-sm" th:href="@{|/corsi/${corso.id}/prenota|}"
                             th:classappend="${pienoMap[corso.id]} ? ' disabled' : ''">
                             <span th:if="${pienoMap[corso.id]}">Corso al completo</span>
                             <span th:if="${!pienoMap[corso.id] and !soloRiservaMap[corso.id]}">Prenota</span>

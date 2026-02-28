@@ -14,7 +14,6 @@
             <h1 class="text-dark m-0">Corsi archiviati</h1>
             <div class="d-flex flex-wrap gap-2">
                 <a href="/corsi" class="btn btn-outline-secondary">Torna ai corsi</a>
-                <a href="/home" class="btn btn-outline-secondary">Home</a>
                 <form th:action="@{/admin/corsi-archiviati/elimina-tutti}" method="post"
                     onsubmit="return confirm('Sei sicuro? Verranno eliminati tutti i corsi archiviati e le relative prenotazioni.');">
                     <button type="submit" class="btn btn-danger">
