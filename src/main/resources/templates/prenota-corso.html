@@ -6,13 +6,13 @@
 </head>
 
 <body>
+    <!-- NAVBAR -->
+    <div th:replace="~{fragments :: navbar}"></div>
     <div class="container py-5">
 
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1 class="text-dark m-0" th:text="'Prenota: ' + ${corso.nome}">Prenota: Nome corso</h1>
+            <h1 class="text-dark m-0" th:text="${corso.nome}">Nome corso</h1>
             <div class="d-flex gap-2">
-                <a href="/" class="btn btn-outline-secondary">Home</a>
-                <a href="/corsi" class="btn btn-outline-secondary">Torna ai corsi</a>
                 <a th:href="@{|/corsi/${corso.id}|}" class="btn btn-outline-secondary">Vai al dettaglio</a>
             </div>
         </div>
@@ -59,25 +59,17 @@
                             <input class="form-control" type="text" name="nome" placeholder="Il tuo nome" required>
                         </div>
 
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-success btn" th:disabled="${completamentePieno}">
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-success flex-fill" th:disabled="${completamentePieno}">
                                 <span th:if="${!soloRiserva}">Conferma prenotazione</span>
                                 <span th:if="${soloRiserva}">Conferma prenotazione (verrai inserito come riserva)</span>
                             </button>
-
+                            <a href="/corsi" class="btn btn-outline-secondary flex-fill">Torna ai corsi</a>
                         </div>
                     </form>
-
-
                     <!-- se NON loggato, un avviso -->
                     <div th:if="${#authorization.expression('!isAuthenticated()')}" class="alert alert-info mt-3">
                         Per prenotare devi <a href="/login">accedere</a>.
-                    </div>
-
-
-                    <div class="d-grid gap-2 mt-3">
-                        <a href="/corsi" class="btn btn-outline-secondary btn">Torna ai corsi</a>
-                        <a href="/" class="btn btn-outline-secondary btn">Home</a>
                     </div>
                 </div>
             </div>

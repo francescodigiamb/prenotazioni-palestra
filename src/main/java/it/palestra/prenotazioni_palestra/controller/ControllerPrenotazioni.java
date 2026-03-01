@@ -295,7 +295,23 @@ public class ControllerPrenotazioni {
             redirectAttrs.addFlashAttribute("error", "Non sei autorizzato a cancellare questa prenotazione.");
             return "redirect:/prenotazioni/mie";
         }
+        // ✅ BLOCCO DISDETTA: consentita fino a 1 ora prima dell'inizio del corso
+        if (p.getCorso() != null && p.getCorso().getData() != null && p.getCorso().getOrario() != null) {
 
+            java.time.LocalDateTime inizioCorso = java.time.LocalDateTime.of(p.getCorso().getData(),
+                    p.getCorso().getOrario());
+
+            java.time.LocalDateTime adesso = java.time.LocalDateTime.now(java.time.ZoneId.of("Europe/Rome"));
+
+            // Regola: puoi cancellare fino a 1 ora prima (esattamente 1 ora prima è OK)
+            java.time.LocalDateTime limiteDisdetta = inizioCorso.minusHours(1);
+
+            if (adesso.isAfter(limiteDisdetta)) {
+                redirectAttrs.addFlashAttribute("error",
+                        "Puoi cancellare la prenotazione fino a 1 ora prima dell'inizio del corso.");
+                return "redirect:/prenotazioni/mie";
+            }
+        }
         // ✅ Salvo i dati PRIMA della delete (servono per la mail admin)
         String corsoNome = (p.getCorso() != null && p.getCorso().getNome() != null) ? p.getCorso().getNome() : "-";
         String data = (p.getCorso() != null && p.getCorso().getData() != null)
