@@ -41,7 +41,7 @@ public class SecurityConfig {
                                                 .requestMatchers("/account/**").authenticated()
                                                 .requestMatchers("/prenotazioni/**").authenticated()
                                                 .requestMatchers("/admin/**").hasRole("ADMIN")
-                                                .anyRequest().permitAll())
+                                                .anyRequest().authenticated())
 
                                 .formLogin(form -> form
                                                 .loginPage("/login").permitAll()
