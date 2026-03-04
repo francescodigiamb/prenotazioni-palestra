@@ -36,7 +36,7 @@ public class SecurityConfig {
                                 .authorizeHttpRequests(auth -> auth
                                                 .requestMatchers("/", "/home", "/corsi", "/corsi/*", "/listino",
                                                                 "/login",
-                                                                "/register", "/css/**", "/js/**")
+                                                                "/register", "/css/**", "/js/**", "/img/**")
                                                 .permitAll()
                                                 .requestMatchers("/account/**").authenticated()
                                                 .requestMatchers("/prenotazioni/**").authenticated()
