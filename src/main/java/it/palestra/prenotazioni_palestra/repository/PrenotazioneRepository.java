@@ -54,6 +54,10 @@ public interface PrenotazioneRepository extends JpaRepository<Prenotazione, Inte
 
   long countByCorso_IdAndRiservaTrue(Integer corsoId);
 
+  int countByUtenteAndCorso_DataBetween(Utente utente, LocalDate start, LocalDate end);
+
+  List<Prenotazione> findByUtenteAndCorso_DataBetween(Utente utente, LocalDate start, LocalDate end);
+
   @Query("""
           SELECT p
           FROM Prenotazione p

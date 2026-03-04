@@ -84,7 +84,6 @@
                         <th>Tipo</th>
                         <th>Nome</th>
                         <th>Cognome</th>
-                        <th>Email</th>
                         <th>Creato il</th>
                     </tr>
                 </thead>
@@ -97,7 +96,6 @@
 
                         <td th:text="${p.utente.nome}">Mario</td>
                         <td th:text="${p.utente.cognome}">Rossi</td>
-                        <td th:text="${p.utente.email}">mario@email.com</td>
                         <td th:text="${p.createdAt != null ? #temporals.format(p.createdAt, 'dd/MM/yyyy HH:mm') : '-'}">
                             -</td>
                     </tr>

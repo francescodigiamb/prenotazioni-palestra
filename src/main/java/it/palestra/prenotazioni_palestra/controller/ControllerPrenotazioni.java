@@ -95,6 +95,37 @@ public class ControllerPrenotazioni {
             redirectAttrs.addFlashAttribute("warning", "Sei già prenotato a questo corso.");
             return "redirect:/corsi/" + corsoId;
         }
+        // 5.1) Limite: max 3 prenotazioni a settimana (incluse riserve)
+        // Contiamo solo le prenotazioni "ancora attive", cioè corsi non ancora iniziati
+        LocalDate dataCorso = corso.getData();
+        LocalDate startWeek = dataCorso
+                .with(java.time.temporal.TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY));
+        LocalDate endWeek = dataCorso.with(java.time.temporal.TemporalAdjusters.nextOrSame(java.time.DayOfWeek.SUNDAY));
+
+        List<Prenotazione> settimanali = prenotazioneRepository.findByUtenteAndCorso_DataBetween(utente, startWeek,
+                endWeek);
+
+        java.time.LocalDateTime now = java.time.LocalDateTime.now(java.time.ZoneId.of("Europe/Rome"));
+        int attive = 0;
+
+        for (Prenotazione pr : settimanali) {
+            if (pr.getCorso() == null || pr.getCorso().getData() == null || pr.getCorso().getOrario() == null) {
+                continue;
+            }
+            java.time.LocalDateTime inizio = java.time.LocalDateTime.of(pr.getCorso().getData(),
+                    pr.getCorso().getOrario());
+
+            // Se il corso non è ancora iniziato, la prenotazione conta nel limite
+            if (inizio.isAfter(now)) {
+                attive++;
+            }
+        }
+
+        if (attive >= 3) {
+            redirectAttrs.addFlashAttribute("error",
+                    "Hai già raggiunto il limite di 3 prenotazioni per questa settimana (incluse riserve).");
+            return "redirect:/corsi/" + corsoId;
+        }
 
         // 6) Capienza
         int prenotatiNormali = prenotazioneRepository.countByCorsoAndRiservaFalse(corso);
