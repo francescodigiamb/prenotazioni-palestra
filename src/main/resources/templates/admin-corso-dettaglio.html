@@ -85,6 +85,7 @@
                         <th>Nome</th>
                         <th>Cognome</th>
                         <th>Creato il</th>
+                        <th>Azioni</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -98,6 +99,20 @@
                         <td th:text="${p.utente.cognome}">Rossi</td>
                         <td th:text="${p.createdAt != null ? #temporals.format(p.createdAt, 'dd/MM/yyyy HH:mm') : '-'}">
                             -</td>
+                        <td>
+                            <!-- Mostra il bottone solo se è riserva -->
+                            <form th:if="${p.riserva}" method="post"
+                                th:action="@{/admin/corsi/{corsoId}/promuovi(corsoId=${corso.id})}">
+                                <input type="hidden" name="prenotazioneId" th:value="${p.id}">
+                                <button type="submit" class="btn btn-sm btn-outline-success"
+                                    th:disabled="${postiDisponibili <= 0}">
+                                    Promuovi
+                                </button>
+                            </form>
+
+                            <!-- Se è già confermato, niente -->
+                            <span th:if="${!p.riserva}" class="text-muted small">—</span>
+                        </td>
                     </tr>
                 </tbody>
             </table>
