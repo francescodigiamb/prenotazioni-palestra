@@ -102,10 +102,17 @@
                     <!-- Posti -->
                     <div class="mb-3">
                         <span class="badge rounded-pill bg-light text-dark border px-3 py-2">
-                            Posti:
+                            Prenotati:
                             <strong th:text="${prenotatiNormaliMap[corso.id]}">0</strong>
                             /
                             <span th:text="${corso.maxPosti}">12</span>
+                        </span>
+
+                        <span class="badge rounded-pill bg-light text-dark border px-3 py-2">
+                            Riserve:
+                            <strong th:text="${prenotatiMap[corso.id] - prenotatiNormaliMap[corso.id]}">0</strong>
+                            /
+                            <span>6</span>
                         </span>
                     </div>
 
