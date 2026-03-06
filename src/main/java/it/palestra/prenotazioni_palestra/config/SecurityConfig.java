@@ -34,10 +34,14 @@ public class SecurityConfig {
                 http
                                 .authenticationProvider(authProvider())
                                 .authorizeHttpRequests(auth -> auth
-                                                .requestMatchers("/", "/home", "/corsi", "/corsi/*", "/listino",
-                                                                "/catalogo",
-                                                                "/login",
-                                                                "/register", "/css/**", "/js/**", "/img/**")
+                                                .requestMatchers(
+                                                                "/", "/home", "/corsi", "/corsi/*", "/listino",
+                                                                "/login", "/register",
+                                                                "/reinvia-verifica",
+                                                                "/verify",
+                                                                "/forgot-password",
+                                                                "/reset-password",
+                                                                "/css/**", "/js/**", "/img/**")
                                                 .permitAll()
                                                 .requestMatchers("/account/**").authenticated()
                                                 .requestMatchers("/prenotazioni/**").authenticated()
