@@ -78,8 +78,9 @@ public class VerificationService {
 
     public void reinviaVerifica(String email) {
 
+        String emailPulita = (email != null) ? email.trim() : "";
         // 1) cerca utente
-        Utente utente = utenteRepo.findByEmail(email).orElse(null);
+        Utente utente = utenteRepo.findByEmail(emailPulita).orElse(null);
         if (utente == null)
             return;
 

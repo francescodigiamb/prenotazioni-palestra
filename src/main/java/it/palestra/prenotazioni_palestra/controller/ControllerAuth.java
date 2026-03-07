@@ -98,6 +98,7 @@ public class ControllerAuth {
         try {
             verificationService.reinviaVerifica(email);
         } catch (Exception e) {
+            e.printStackTrace();
             System.out.println("Reinvio verifica fallito per " + email + ": " + e.getMessage());
             // non cambiare messaggio per non rivelare info
         }
