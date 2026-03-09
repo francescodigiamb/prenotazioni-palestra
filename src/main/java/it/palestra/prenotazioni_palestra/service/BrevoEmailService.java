@@ -54,7 +54,6 @@ public class BrevoEmailService {
                 <p><b>Ora:</b> %s</p>
                 <br>
                 <p><b>Utente:</b> %s %s</p>
-                <p><b>Email:</b> %s</p>
                 """.formatted(corsoNome, data, ora, utenteNome, utenteCognome, utenteEmail);
 
         sendEmail(fromEmail, adminEmail, subject, html);
