@@ -71,7 +71,7 @@ public class PasswordResetService {
                 <p>A presto,<br>FitnessClub Chieti</p>
                 """.formatted(link);
 
-        brevoEmailService.sendVerificationEmail(mailFrom, utente.getEmail(), subject, html);
+        brevoEmailService.sendEmail(mailFrom, utente.getEmail(), subject, html);
         // (il metodo si chiama ancora sendVerificationEmail, ma lo usiamo come
         // "sendEmail".
         // Se vuoi, dopo lo rinominiamo in un nome più generico.)

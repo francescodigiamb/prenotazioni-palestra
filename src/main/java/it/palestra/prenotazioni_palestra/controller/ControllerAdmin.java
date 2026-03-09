@@ -6,10 +6,11 @@ import it.palestra.prenotazioni_palestra.model.Prenotazione;
 import it.palestra.prenotazioni_palestra.repository.CorsoRepository;
 import it.palestra.prenotazioni_palestra.repository.ModelloCorsoRepository;
 import it.palestra.prenotazioni_palestra.repository.PrenotazioneRepository;
+import it.palestra.prenotazioni_palestra.service.BrevoEmailService;
 import it.palestra.prenotazioni_palestra.service.CleanupService;
-import it.palestra.prenotazioni_palestra.service.EmailService;
 import it.palestra.prenotazioni_palestra.service.PianificazioneService;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,19 +36,23 @@ public class ControllerAdmin {
     private final ModelloCorsoRepository modelloRepo;
     private final PianificazioneService pianificazioneService;
     private final CleanupService cleanupService;
-    private final EmailService emailService;
+    private final BrevoEmailService brevoEmailService;
 
     // COSTRUTTORE
     public ControllerAdmin(CorsoRepository corsoRepository, PrenotazioneRepository prenotazioneRepository,
             ModelloCorsoRepository modelloRepo,
-            PianificazioneService pianificazioneService, CleanupService cleanupService, EmailService emailService) {
+            PianificazioneService pianificazioneService, CleanupService cleanupService,
+            BrevoEmailService brevoEmailService) {
         this.corsoRepository = corsoRepository;
         this.prenotazioneRepository = prenotazioneRepository;
         this.modelloRepo = modelloRepo;
         this.pianificazioneService = pianificazioneService;
         this.cleanupService = cleanupService;
-        this.emailService = emailService;
+        this.brevoEmailService = brevoEmailService;
     }
+
+    @Value("${app.mail.from}")
+    private String appMailFrom;
 
     private boolean isExpired(Corso c) {
         LocalDate today = LocalDate.now();
@@ -569,7 +574,12 @@ public class ControllerAdmin {
                     ? corso.getOrario().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"))
                     : "-";
 
-            emailService.inviaPromozioneDaRiserva(to.trim(), nomeCorso, data, ora);
+            try {
+                brevoEmailService.inviaPromozioneDaRiserva(appMailFrom, to.trim(), nomeCorso, data, ora);
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.out.println("Invio mail promozione FALLITO per " + to + ": " + e.getMessage());
+            }
         }
 
         ra.addFlashAttribute("success", "Prenotazione promossa dalla lista d'attesa.");

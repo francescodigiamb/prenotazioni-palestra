@@ -6,13 +6,14 @@ import it.palestra.prenotazioni_palestra.model.Utente;
 import it.palestra.prenotazioni_palestra.repository.CorsoRepository;
 import it.palestra.prenotazioni_palestra.repository.PrenotazioneRepository;
 import it.palestra.prenotazioni_palestra.repository.UtenteRepository;
-import it.palestra.prenotazioni_palestra.service.EmailService;
+import it.palestra.prenotazioni_palestra.service.BrevoEmailService;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -29,16 +30,22 @@ public class ControllerPrenotazioni {
     private final CorsoRepository corsoRepository;
     private final UtenteRepository utenteRepository;
     private final PrenotazioneRepository prenotazioneRepository;
-    private final EmailService emailService;
+    private final BrevoEmailService brevoEmailService;
 
     public ControllerPrenotazioni(CorsoRepository corsoRepository,
             UtenteRepository utenteRepository,
-            PrenotazioneRepository prenotazioneRepository, EmailService emailService) {
+            PrenotazioneRepository prenotazioneRepository, BrevoEmailService brevoEmailService) {
         this.corsoRepository = corsoRepository;
         this.utenteRepository = utenteRepository;
         this.prenotazioneRepository = prenotazioneRepository;
-        this.emailService = emailService;
+        this.brevoEmailService = brevoEmailService;
     }
+
+    @Value("${app.mail.from}")
+    private String appMailFrom;
+
+    @Value("${app.mail.admin}")
+    private String adminEmail;
 
     // ====== CREA PRENOTAZIONE (POST) ======
     @Transactional
@@ -129,11 +136,12 @@ public class ControllerPrenotazioni {
 
         // 6) Capienza
         int prenotatiNormali = prenotazioneRepository.countByCorsoAndRiservaFalse(corso);
+        int prenotatiRiserva = prenotazioneRepository.countByCorsoAndRiservaTrue(corso);
         int prenotatiTotali = prenotazioneRepository.countByCorso(corso);
-        int LIMITE_RISERVE = 6;
+        int LIMITE_RISERVE = 10;
 
         // 1) Se ci sono ancora posti normali
-        if (prenotatiNormali < corso.getMaxPosti()) {
+        if (prenotatiNormali < corso.getMaxPosti() && prenotatiRiserva == 0) {
             // prenotazione normale
             Prenotazione p = new Prenotazione(utente, corso);
             p.setRiserva(false);
@@ -143,8 +151,8 @@ public class ControllerPrenotazioni {
             return "redirect:/corsi/" + corsoId;
         }
 
-        // 2) Se posti normali finiscono ma riserve NON sono piene
-
+        // 2) Se il corso è pieno oppure ci sono già riserve in attesa, i nuovi utenti
+        // entrano in lista d'attesa
         if (prenotatiTotali < corso.getMaxPosti() + LIMITE_RISERVE) {
             // prenotazione in riserva
             Prenotazione p = new Prenotazione(utente, corso);
@@ -363,7 +371,20 @@ public class ControllerPrenotazioni {
         prenotazioneRepository.deleteById(prenotazioneId);
 
         // ✅ MAIL admin: disdetta
-        emailService.inviaNotificaDisdettaAdmin(corsoNome, data, ora, utenteNome, utenteCognome, utenteEmail);
+        try {
+            brevoEmailService.inviaNotificaDisdettaAdmin(
+                    appMailFrom,
+                    adminEmail,
+                    corsoNome,
+                    data,
+                    ora,
+                    utenteNome,
+                    utenteCognome,
+                    utenteEmail);
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Invio mail disdetta admin FALLITO: " + e.getMessage());
+        }
 
         redirectAttrs.addFlashAttribute("success", "Prenotazione cancellata correttamente.");
         return "redirect:/prenotazioni/mie";

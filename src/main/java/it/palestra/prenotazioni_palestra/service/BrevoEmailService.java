@@ -14,7 +14,7 @@ public class BrevoEmailService {
         this.brevoRestClient = brevoRestClient;
     }
 
-    public void sendVerificationEmail(String fromEmail, String toEmail, String subject, String htmlContent) {
+    public void sendEmail(String fromEmail, String toEmail, String subject, String htmlContent) {
         Map<String, Object> body = Map.of(
                 "sender", Map.of("email", fromEmail, "name", "FitnessClub Chieti"),
                 "to", new Object[] { Map.of("email", toEmail) },
@@ -26,4 +26,38 @@ public class BrevoEmailService {
                 .retrieve()
                 .toBodilessEntity();
     }
+
+    public void inviaPromozioneDaRiserva(String fromEmail, String toEmail, String nomeCorso, String data, String ora) {
+        String subject = "Sei stato confermato - " + nomeCorso;
+
+        String html = """
+                <p>Ciao,</p>
+                <p>Si è liberato un posto e la tua prenotazione è stata confermata.</p>
+                <p><b>Corso:</b> %s</p>
+                <p><b>Quando:</b> %s alle %s</p>
+                <p>A presto,<br>FitnessClub Chieti</p>
+                """.formatted(nomeCorso, data, ora);
+
+        sendEmail(fromEmail, toEmail, subject, html);
+    }
+
+    public void inviaNotificaDisdettaAdmin(String fromEmail, String adminEmail,
+            String corsoNome, String data, String ora,
+            String utenteNome, String utenteCognome, String utenteEmail) {
+
+        String subject = "Disdetta prenotazione - " + corsoNome;
+
+        String html = """
+                <p>È stata annullata una prenotazione.</p>
+                <p><b>Corso:</b> %s</p>
+                <p><b>Data:</b> %s</p>
+                <p><b>Ora:</b> %s</p>
+                <br>
+                <p><b>Utente:</b> %s %s</p>
+                <p><b>Email:</b> %s</p>
+                """.formatted(corsoNome, data, ora, utenteNome, utenteCognome, utenteEmail);
+
+        sendEmail(fromEmail, adminEmail, subject, html);
+    }
+
 }

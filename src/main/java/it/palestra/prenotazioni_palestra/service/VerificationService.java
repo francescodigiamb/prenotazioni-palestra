@@ -73,7 +73,7 @@ public class VerificationService {
         // emailService.inviaEmailSemplice(utente.getEmail(), subject, body);
 
         // Brevo API (nuovo)
-        brevoEmailService.sendVerificationEmail(appMailFrom, utente.getEmail(), subject, html);
+        brevoEmailService.sendEmail(appMailFrom, utente.getEmail(), subject, html);
     }
 
     public void reinviaVerifica(String email) {
