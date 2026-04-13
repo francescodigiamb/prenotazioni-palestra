@@ -97,12 +97,23 @@ public class ControllerPrenotazioni {
             return "redirect:/corsi/" + corsoId;
         }
 
-        // 5) Doppia prenotazione
+        // 5) Doppia prenotazione sullo stesso corso
         if (prenotazioneRepository.existsByUtenteAndCorso(utente, corso)) {
             redirectAttrs.addFlashAttribute("warning", "Sei già prenotato a questo corso.");
             return "redirect:/corsi/" + corsoId;
         }
-        // 5.1) Limite: max 3 prenotazioni a settimana (incluse riserve)
+
+        // 5.1) Un solo corso al giorno (vale sia per confermati che per riserve)
+        List<Prenotazione> prenotazioniStessoGiorno = prenotazioneRepository.findByUtenteAndCorso_Data(utente,
+                corso.getData());
+
+        if (!prenotazioniStessoGiorno.isEmpty()) {
+            redirectAttrs.addFlashAttribute("error",
+                    "Hai già una prenotazione per questo giorno. Puoi prenotare un solo corso al giorno.");
+            return "redirect:/corsi/" + corsoId;
+        }
+
+        // 5.2) Limite: max 3 prenotazioni a settimana (incluse riserve)
         // Contiamo solo le prenotazioni "ancora attive", cioè corsi non ancora iniziati
         LocalDate dataCorso = corso.getData();
         LocalDate startWeek = dataCorso
@@ -150,7 +161,6 @@ public class ControllerPrenotazioni {
             redirectAttrs.addFlashAttribute("success", "Prenotazione confermata!");
             return "redirect:/corsi/" + corsoId;
         }
-
         // 2) Se il corso è pieno oppure ci sono già riserve in attesa, i nuovi utenti
         // entrano in lista d'attesa
         if (prenotatiTotali < corso.getMaxPosti() + LIMITE_RISERVE) {

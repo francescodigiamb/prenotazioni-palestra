@@ -58,6 +58,8 @@ public interface PrenotazioneRepository extends JpaRepository<Prenotazione, Inte
 
   List<Prenotazione> findByUtenteAndCorso_DataBetween(Utente utente, LocalDate start, LocalDate end);
 
+  List<Prenotazione> findByUtenteAndCorso_Data(Utente utente, LocalDate data);
+
   @Query("""
           SELECT p
           FROM Prenotazione p
