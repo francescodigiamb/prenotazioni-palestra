@@ -51,7 +51,6 @@ public class ControllerPrenotazioni {
     @Transactional
     @PostMapping
     public String creaPrenotazione(@RequestParam("corsoId") Integer corsoId,
-            @RequestParam(value = "nome", required = false) String nome,
             RedirectAttributes redirectAttrs) {
 
         // 1) Utente autenticato
@@ -69,13 +68,6 @@ public class ControllerPrenotazioni {
             return "redirect:/login";
         }
         Utente utente = maybeUtente.get();
-
-        // (facoltativo) aggiorna nome profilo se fornito e diverso
-        if (nome != null && !nome.trim().isEmpty()
-                && (utente.getNome() == null || !utente.getNome().equals(nome.trim()))) {
-            utente.setNome(nome.trim());
-            utenteRepository.save(utente);
-        }
 
         // 3) Corso (se hai un metodo lockById usa quello; qui usiamo findById per
         // compatibilità)

@@ -218,7 +218,8 @@ public class ControllerCorsi {
     @GetMapping("/corsi/{id}/prenota")
     public String prenotaCorso(@PathVariable Integer id,
             Model model,
-            RedirectAttributes ra) {
+            RedirectAttributes ra,
+            Authentication authentication) {
 
         Optional<Corso> maybeCorso = corsoRepository.findById(id);
         if (!maybeCorso.isPresent()) {
