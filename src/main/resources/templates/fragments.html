@@ -15,6 +15,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title th:text="${title} ?: 'FitnessClub'">FitnessClub</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
         <style th:inline="css">
             :root {
                 /* Colore di default (bianco sporco). Puoi passarlo come 2° argomento al fragment */
@@ -60,7 +61,7 @@
                     <li class="nav-item">
                         <a class="nav-link"
                             th:classappend="${#httpServletRequest != null and (#httpServletRequest.requestURI ?: '').startsWith('/catalogo')} ? ' active' : ''"
-                            href="/catalogo">Corsi</a>
+                            href="/catalogo">Orari settimanali</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link"
@@ -70,79 +71,50 @@
                     <li class="nav-item">
                         <a class="nav-link"
                             th:classappend="${#httpServletRequest != null and (#httpServletRequest.requestURI ?: '').startsWith('/corsi')} ? ' active' : ''"
-                            href="/corsi">Prenota ora</a>
+                            href="/corsi">Prenota</a>
                     </li>
                 </ul>
 
                 <!-- Right -->
-                <div class="d-flex align-items-center flex-column flex-lg-row">
-                    <!-- Admin menu (solo ADMIN) -->
-                    <!-- ADMIN - DESKTOP -->
-                    <div class="dropdown me-2 d-none d-lg-block"
-                        th:if="${#authorization.expression('hasRole(''ADMIN'')')}">
+                <div class="d-flex align-items-center flex-column flex-lg-row gap-2">
 
+                    <!-- Admin menu (dropdown unico, funziona su desktop e mobile) -->
+                    <div class="dropdown" th:if="${#authorization.expression('hasRole(''ADMIN'')')}">
                         <button class="btn btn-outline-light btn-sm dropdown-toggle" type="button"
-                            data-bs-toggle="dropdown">
-                            Admin
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-gear me-1"></i>Admin
                         </button>
-
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="/admin/modelli">Modelli corsi</a></li>
                             <li><a class="dropdown-item" href="/admin/corsi">Gestione corsi</a></li>
                             <li><a class="dropdown-item" href="/admin/prenotazioni">Prenotazioni</a></li>
+                            <li><a class="dropdown-item" href="/admin/modelli">Modelli corsi</a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
                             <li><a class="dropdown-item" href="/admin/corsi-archiviati">Archiviati</a></li>
                         </ul>
                     </div>
 
-                    <!-- ADMIN - MOBILE -->
-                    <div class="d-lg-none mb-2 align-self-start"
-                        th:if="${#authorization.expression('hasRole(''ADMIN'')')}">
+                    <!-- Le mie prenotazioni (utente loggato, non admin) -->
+                    <a href="/prenotazioni/mie" class="btn btn-outline-light btn-sm"
+                        sec:authorize="isAuthenticated() and !hasRole('ADMIN')">
+                        <i class="bi bi-calendar-check me-1"></i>Le mie prenotazioni
+                    </a>
 
-                        <div class="fw-semibold text-white mb-1">Admin</div>
+                    <!-- Utente non loggato: Registrati + Login -->
+                    <a class="btn btn-outline-light btn-sm" href="/register" sec:authorize="!isAuthenticated()">
+                        Registrati
+                    </a>
+                    <a class="btn btn-outline-light btn-sm" href="/login" sec:authorize="!isAuthenticated()">
+                        <i class="bi bi-box-arrow-in-right me-1"></i>Login
+                    </a>
 
-                        <a class="btn btn-outline-light btn-sm mb-1" href="/admin/modelli">
-                            Modelli corsi
-                        </a>
-                        <a class="btn btn-outline-light btn-sm mb-1" href="/admin/corsi">
-                            Gestione corsi
-                        </a>
-                        <a class="btn btn-outline-light btn-sm mb-1" href="/admin/prenotazioni">
-                            Prenotazioni
-                        </a>
-                        <a class="btn btn-outline-light btn-sm mb-1" href="/admin/corsi-archiviati">
-                            Archiviati
-                        </a>
-                    </div>
-
-
-                    <!-- Lato destro: pulsante mie prenotazioni + login/logout -->
-                    <div class="d-flex align-items-center gap-2">
-
-                        <!-- 👇 Pulsante visibile SOLO se l'utente è autenticato -->
-                        <a href="/prenotazioni/mie" class="btn btn-outline-light btn-sm"
-                            sec:authorize="isAuthenticated() and !hasRole('ADMIN')">
-                            Le mie prenotazioni
-                        </a>
-
-                        <!-- Utente non loggato: mostra Registrati + Login -->
-                        <a class="btn btn-outline-light btn-sm" href="/register" sec:authorize="!isAuthenticated()">
-                            Registrati
-                        </a>
-                        <a class="btn btn-outline-light btn-sm" href="/login" sec:authorize="!isAuthenticated()">
-                            Login
-                        </a>
-
-                        <!-- Utente loggato: mostra nome + Logout -->
-                        <!-- <span class="navbar-text text-white small" sec:authorize="isAuthenticated()">
-                            <i class="bi bi-person-circle me-1"></i>
-                            <span sec:authentication="name"></span>
-                        </span> -->
-                        <form th:action="@{/logout}" method="post" class="d-block d-lg-inline align-self-start"
-                            sec:authorize="isAuthenticated()">
-
-                            <button type="submit" class="btn btn-outline-light btn-sm">Logout</button>
-                        </form>
-                    </div>
+                    <!-- Utente loggato: Logout -->
+                    <form th:action="@{/logout}" method="post" class="m-0" sec:authorize="isAuthenticated()">
+                        <button type="submit" class="btn btn-outline-light btn-sm">
+                            <i class="bi bi-box-arrow-right me-1"></i>Logout
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>
@@ -201,7 +173,10 @@
 
                 </div>
                 <hr class="border-light mt-4">
-                <p class="text-center small mb-0">&copy; 2025 FitnessClub. Tutti i diritti riservati.</p>
+                <p class="text-center small mb-1">&copy; 2025 FitnessClub. Tutti i diritti riservati.</p>
+                <p class="text-center mb-0" style="font-size: 0.75rem; color: rgba(255,255,255,0.5);">
+                    Sviluppato da Francesco Di Giambattista
+                </p>
             </div>
         </footer>
 
@@ -212,6 +187,25 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Easter egg per sviluppatori curiosi -->
+    <script>
+        console.log(
+            '%cFitnessClub',
+            'font-size: 22px; font-weight: bold; color: #1f1f1f; background: #F6F3EA; padding: 6px 12px; border-radius: 6px;'
+        );
+        console.log(
+            '%cCiao, sviluppatore curioso 👋',
+            'font-size: 14px; font-weight: bold; color: #1f1f1f;'
+        );
+        console.log(
+            '%cQuesto sito è stato costruito con Spring Boot, Thymeleaf, qualche nottata e parecchio Stack Overflow.',
+            'font-size: 12px; color: #555;'
+        );
+        console.log(
+            '%c— Francesco Di Giambattista, 2025',
+            'font-size: 12px; color: #888; font-style: italic;'
+        );
+    </script>
 </body>
 
 </html>
