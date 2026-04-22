@@ -100,18 +100,29 @@
                         <td th:text="${p.createdAt != null ? #temporals.format(p.createdAt, 'dd/MM/yyyy HH:mm') : '-'}">
                             -</td>
                         <td>
-                            <!-- Mostra il bottone solo se è riserva -->
-                            <form th:if="${p.riserva}" method="post"
-                                th:action="@{/admin/corsi/{corsoId}/promuovi(corsoId=${corso.id})}">
-                                <input type="hidden" name="prenotazioneId" th:value="${p.id}">
-                                <button type="submit" class="btn btn-sm btn-outline-success"
-                                    th:disabled="${postiDisponibili <= 0}">
-                                    Promuovi
-                                </button>
-                            </form>
+                            <div class="d-flex gap-2 align-items-center">
 
-                            <!-- Se è già confermato, niente -->
-                            <span th:if="${!p.riserva}" class="text-muted small">—</span>
+                                <!-- Promuovi (solo per riserve) -->
+                                <form th:if="${p.riserva}" method="post"
+                                    th:action="@{/admin/corsi/{corsoId}/promuovi(corsoId=${corso.id})}" class="m-0">
+                                    <input type="hidden" name="prenotazioneId" th:value="${p.id}">
+                                    <button type="submit" class="btn btn-sm btn-outline-success"
+                                        th:disabled="${postiDisponibili <= 0}">
+                                        Promuovi
+                                    </button>
+                                </form>
+
+                                <!-- Rimuovi utente dal corso (sempre disponibile) -->
+                                <form method="post" th:action="@{/admin/prenotazioni/{id}/cancella(id=${p.id})}"
+                                    class="m-0"
+                                    th:attr="onsubmit=|return confirm('Rimuovere ${p.utente.nome} ${p.utente.cognome} dal corso? L\\'utente riceverà una mail di notifica.');|">
+                                    <input type="hidden" name="corsoId" th:value="${corso.id}">
+                                    <button type="submit" class="btn btn-sm btn-danger" title="Rimuovi dal corso">
+                                        ✕
+                                    </button>
+                                </form>
+
+                            </div>
                         </td>
                     </tr>
                 </tbody>

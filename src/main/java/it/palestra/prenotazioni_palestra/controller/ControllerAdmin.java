@@ -456,14 +456,60 @@ public class ControllerAdmin {
 
     @Transactional
     @PostMapping("/prenotazioni/{id}/cancella")
-    public String adminCancellaPrenotazione(@PathVariable Integer id, RedirectAttributes ra) {
+    public String adminCancellaPrenotazione(@PathVariable Integer id,
+            @RequestParam(value = "corsoId", required = false) Integer corsoId,
+            RedirectAttributes ra) {
+
         Optional<Prenotazione> maybe = prenotazioneRepository.findById(id);
         if (!maybe.isPresent()) {
             ra.addFlashAttribute("error", "Prenotazione non trovata.");
             return "redirect:/admin/prenotazioni";
         }
+
+        Prenotazione p = maybe.get();
+
+        // Salvo i dati PRIMA della delete (servono per la mail)
+        String utenteEmail = (p.getUtente() != null && p.getUtente().getEmail() != null)
+                ? p.getUtente().getEmail()
+                : null;
+        String utenteNome = (p.getUtente() != null && p.getUtente().getNome() != null)
+                ? p.getUtente().getNome()
+                : "";
+        String corsoNome = (p.getCorso() != null && p.getCorso().getNome() != null)
+                ? p.getCorso().getNome()
+                : "-";
+        String data = (p.getCorso() != null && p.getCorso().getData() != null)
+                ? p.getCorso().getData().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                : "-";
+        String ora = (p.getCorso() != null && p.getCorso().getOrario() != null)
+                ? p.getCorso().getOrario().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"))
+                : "-";
+
+        // delete
         prenotazioneRepository.deleteById(id);
-        ra.addFlashAttribute("success", "Prenotazione cancellata.");
+
+        // Mail all'utente rimosso
+        if (utenteEmail != null && !utenteEmail.trim().isEmpty()) {
+            try {
+                brevoEmailService.inviaRimozioneDaAdmin(
+                        appMailFrom,
+                        utenteEmail.trim(),
+                        utenteNome,
+                        corsoNome,
+                        data,
+                        ora);
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.out.println("Invio mail rimozione da admin FALLITO per " + utenteEmail + ": " + e.getMessage());
+            }
+        }
+
+        ra.addFlashAttribute("success", "Prenotazione cancellata e utente avvisato via email.");
+
+        // Se arriva da dettaglio corso, torno lì; altrimenti alla lista prenotazioni
+        if (corsoId != null) {
+            return "redirect:/admin/corsi/" + corsoId;
+        }
         return "redirect:/admin/prenotazioni";
     }
 

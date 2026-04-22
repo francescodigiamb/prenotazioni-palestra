@@ -59,4 +59,23 @@ public class BrevoEmailService {
         sendEmail(fromEmail, adminEmail, subject, html);
     }
 
+    public void inviaRimozioneDaAdmin(String fromEmail, String toEmail,
+            String nomeUtente, String nomeCorso, String data, String ora) {
+
+        String subject = "Prenotazione cancellata - " + nomeCorso;
+
+        String html = ""
+                + "<!DOCTYPE html><html><body style='font-family:Arial,sans-serif;color:#222;'>"
+                + "<h2>Ciao " + nomeUtente + ",</h2>"
+                + "<p>Ti informiamo che la tua prenotazione al corso <strong>" + nomeCorso + "</strong> "
+                + "del <strong>" + data + "</strong> alle <strong>" + ora + "</strong> "
+                + "è stata cancellata da Tony.</p>"
+                + "<p>Se ritieni si tratti di un errore o vuoi avere maggiori informazioni, "
+                + "contatta direttamente la palestra.</p>"
+                + "<p>A presto,<br>Lo staff</p>"
+                + "</body></html>";
+
+        sendEmail(fromEmail, toEmail, subject, html);
+    }
+
 }
