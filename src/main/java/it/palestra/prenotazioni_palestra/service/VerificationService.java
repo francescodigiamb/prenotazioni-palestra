@@ -4,6 +4,8 @@ import it.palestra.prenotazioni_palestra.model.Utente;
 import it.palestra.prenotazioni_palestra.model.VerificationToken;
 import it.palestra.prenotazioni_palestra.repository.UtenteRepository;
 import it.palestra.prenotazioni_palestra.repository.VerificationTokenRepository;
+import org.springframework.transaction.annotation.Transactional;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -76,6 +78,7 @@ public class VerificationService {
         brevoEmailService.sendEmail(appMailFrom, utente.getEmail(), subject, html);
     }
 
+    @Transactional
     public void reinviaVerifica(String email) {
 
         String emailPulita = (email != null) ? email.trim() : "";
