@@ -1,0 +1,78 @@
+name: Backup Database MySQL
+
+# Quando viene eseguito questo workflow
+on:
+  # Schedulato: ogni 3 giorni alle 03:00 UTC (= 04:00 ora italiana invernale, 05:00 estiva)
+  # Cron: minuto ora giorno-mese mese giorno-settimana
+  schedule:
+    - cron: '0 3 */3 * *'
+
+  # Permette anche di lanciarlo manualmente dalla UI di GitHub
+  # Utile per testarlo subito o fare un backup on-demand
+  workflow_dispatch:
+
+jobs:
+  backup:
+    name: Esegui dump del database
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Installa il client MySQL sulla VM di GitHub Actions
+      - name: Installa MySQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y mysql-client
+
+      # 2. Esegui il dump del database
+      - name: Esegui mysqldump
+        env:
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_PORT: ${{ secrets.DB_PORT }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+        run: |
+          # Nome del file con data e ora (formato: backup-2026-05-01_03-00.sql.gz)
+          TIMESTAMP=$(date +%Y-%m-%d_%H-%M)
+          BACKUP_FILE="backup-${TIMESTAMP}.sql.gz"
+
+          echo "Avvio backup del database ${DB_NAME}..."
+
+          # mysqldump con opzioni sicure + compressione gzip
+          mysqldump \
+            --host="${DB_HOST}" \
+            --port="${DB_PORT}" \
+            --user="${DB_USER}" \
+            --password="${DB_PASSWORD}" \
+            --single-transaction \
+            --quick \
+            --no-tablespaces \
+            --set-gtid-purged=OFF \
+            --column-statistics=0 \
+            --routines \
+            --triggers \
+            --events \
+            "${DB_NAME}" | gzip > "${BACKUP_FILE}"
+
+          # Verifica che il file non sia vuoto
+          if [ ! -s "${BACKUP_FILE}" ]; then
+            echo "ERRORE: il file di backup è vuoto!"
+            exit 1
+          fi
+
+          # Mostra dimensione del backup nel log (utile per monitoraggio)
+          echo "Backup completato: ${BACKUP_FILE}"
+          ls -lh "${BACKUP_FILE}"
+
+          # Esporta il nome del file per lo step successivo
+          echo "BACKUP_FILE=${BACKUP_FILE}" >> $GITHUB_ENV
+
+      # 3. Carica il file come "artifact" su GitHub (retention 90 giorni)
+      - name: Carica backup come artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: db-backup-${{ github.run_number }}
+          path: ${{ env.BACKUP_FILE }}
+          retention-days: 90
+          # compression-level 0 perché il file è già compresso con gzip
+          compression-level: 0
