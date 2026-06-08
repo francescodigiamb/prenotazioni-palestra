@@ -1,59 +1,106 @@
-﻿<!DOCTYPE html>
-<html lang="it">
+<!DOCTYPE html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
 
 <head>
-    <th:block th:replace="~{fragments :: baseHead('Registrazione', null)}"></th:block>
+    <th:block th:replace="~{fragments :: baseHead('Registrazione — FitnessClub', null)}"></th:block>
+    <style>
+        body { display: flex; flex-direction: column; min-height: 100vh; }
+        .auth-wrap {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1rem;
+        }
+        .auth-card {
+            width: 100%;
+            max-width: 460px;
+            background: #fff;
+            border-radius: 18px;
+            box-shadow: 0 4px 24px rgba(0,0,0,.10);
+            padding: 2rem 1.75rem;
+        }
+        @media (max-width: 480px) {
+            .auth-card { padding: 1.5rem 1.25rem; }
+        }
+        .auth-logo {
+            width: 72px;
+            height: 72px;
+            object-fit: contain;
+            mix-blend-mode: multiply;
+        }
+    </style>
 </head>
 
 <body>
-    <!-- NAVBAR -->
     <div th:replace="~{fragments :: navbar}"></div>
 
-    <div class="container py-5" style="max-width:520px;">
-        <h3 class="mb-4">Crea il tuo account</h3>
+    <div class="auth-wrap">
+        <div class="auth-card">
 
-        <div th:replace="~{fragments :: alerts}"></div>
-
-        <form th:action="@{/register}" method="post" th:object="${form}">
-            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-
-            <div class="mb-3">
-                <label class="form-label">Nome</label>
-                <input class="form-control" th:field="*{nome}">
-                <div class="text-danger small" th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}"></div>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Cognome</label>
-                <input class="form-control" th:field="*{cognome}">
-                <div class="text-danger small" th:if="${#fields.hasErrors('cognome')}" th:errors="*{cognome}"></div>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Email</label>
-                <input class="form-control" th:field="*{email}">
-                <div class="text-danger small" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
+            <!-- Logo + titolo -->
+            <div class="text-center mb-4">
+                <img src="/img/logo-palestra.png" alt="FitnessClub" class="auth-logo mb-2">
+                <h4 class="fw-bold mb-0">Crea il tuo account</h4>
+                <p class="text-muted small mt-1">Registrati gratuitamente a FitnessClub Chieti.</p>
             </div>
 
-            <div class="mb-3">
-                <label class="form-label">Password</label>
-                <input class="form-control" type="password" th:field="*{password}">
-                <div class="text-danger small" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></div>
+            <div th:replace="~{fragments :: alerts}"></div>
+
+            <form th:action="@{/register}" method="post" th:object="${form}" class="d-grid gap-3">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
+                <div class="row g-2">
+                    <div class="col-6">
+                        <label class="form-label fw-medium">Nome</label>
+                        <input class="form-control" th:field="*{nome}" autocomplete="given-name">
+                        <div class="text-danger small mt-1"
+                             th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}"></div>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label fw-medium">Cognome</label>
+                        <input class="form-control" th:field="*{cognome}" autocomplete="family-name">
+                        <div class="text-danger small mt-1"
+                             th:if="${#fields.hasErrors('cognome')}" th:errors="*{cognome}"></div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="form-label fw-medium">Email</label>
+                    <input class="form-control" th:field="*{email}"
+                           type="email" autocomplete="email" placeholder="tua@email.it">
+                    <div class="text-danger small mt-1"
+                         th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
+                </div>
+
+                <div>
+                    <label class="form-label fw-medium">Password</label>
+                    <input class="form-control" type="password" th:field="*{password}"
+                           autocomplete="new-password" placeholder="minimo 6 caratteri">
+                    <div class="text-danger small mt-1"
+                         th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></div>
+                </div>
+
+                <div>
+                    <label class="form-label fw-medium">Conferma password</label>
+                    <input class="form-control" type="password" th:field="*{confermaPassword}"
+                           autocomplete="new-password">
+                    <div class="text-danger small mt-1"
+                         th:if="${#fields.hasErrors('confermaPassword')}" th:errors="*{confermaPassword}"></div>
+                </div>
+
+                <button class="btn btn-dark w-100 mt-1" type="submit">
+                    <i class="bi bi-person-check me-1"></i>Registrati
+                </button>
+            </form>
+
+            <div class="text-center small mt-3 text-muted">
+                Hai già un account?
+                <a href="/login" class="fw-medium text-dark">Accedi</a>
             </div>
-
-            <div class="mb-4">
-                <label class="form-label">Conferma password</label>
-                <input class="form-control" type="password" th:field="*{confermaPassword}">
-                <div class="text-danger small" th:if="${#fields.hasErrors('confermaPassword')}"
-                    th:errors="*{confermaPassword}"></div>
-            </div>
-
-            <button class="btn btn-primary w-100" type="submit">Registrati</button>
-            <a class="btn btn-outline-secondary w-100 mt-2" href="/login">Hai già un account? Accedi</a>
-        </form>
-
-        <div class="mt-3">
-            <a href="/" class="btn btn-outline-secondary w-100">Torna alla Home</a>
         </div>
     </div>
+
     <!-- FOOTER (include Bootstrap JS) -->
     <div th:replace="~{fragments :: footer}"></div>
 </body>

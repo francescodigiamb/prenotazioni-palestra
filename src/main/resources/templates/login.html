@@ -1,51 +1,95 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
 
 <head>
-    <th:block th:replace="~{fragments :: baseHead('Login', null)}"></th:block>
+    <th:block th:replace="~{fragments :: baseHead('Login — FitnessClub', null)}"></th:block>
+    <style>
+        body { display: flex; flex-direction: column; min-height: 100vh; }
+        .auth-wrap {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1rem;
+        }
+        .auth-card {
+            width: 100%;
+            max-width: 420px;
+            background: #fff;
+            border-radius: 18px;
+            box-shadow: 0 4px 24px rgba(0,0,0,.10);
+            padding: 2rem 1.75rem;
+        }
+        @media (max-width: 480px) {
+            .auth-card { padding: 1.5rem 1.25rem; }
+        }
+        .auth-logo {
+            width: 72px;
+            height: 72px;
+            object-fit: contain;
+            mix-blend-mode: multiply; /* rende trasparente lo sfondo bianco del PNG */
+        }
+        .divider { display: flex; align-items: center; gap: .75rem; color: #aaa; font-size: .8rem; }
+        .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: #e5e5e5; }
+    </style>
 </head>
 
 <body>
-    <!-- NAVBAR -->
     <div th:replace="~{fragments :: navbar}"></div>
 
-    <div class="container py-5" style="max-width:480px;">
-        <h3 class="mb-4 text-center">Accedi</h3>
+    <div class="auth-wrap">
+        <div class="auth-card">
 
-        <div th:replace="~{fragments :: alerts}"></div>
-
-        <form method="post" th:action="@{/login}">
-            <div class="mb-3">
-                <label class="form-label">Email</label>
-                <input class="form-control" type="text" name="username" placeholder="email" required>
+            <!-- Logo + titolo -->
+            <div class="text-center mb-4">
+                <img src="/img/logo-palestra.png" alt="FitnessClub" class="auth-logo mb-2">
+                <h4 class="fw-bold mb-0">Accedi</h4>
+                <p class="text-muted small mt-1">Bentornato/a in FitnessClub Chieti!</p>
             </div>
 
-            <div class="mb-3">
-                <label class="form-label">Password</label>
-                <input class="form-control" type="password" name="password" required>
+            <!-- Alerts -->
+            <div th:replace="~{fragments :: alerts}"></div>
+
+            <!-- Errore login Spring -->
+            <div th:if="${param.error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle me-1"></i>
+                Email o password non corretti.
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
 
-            <div class="row g-2 mt-3">
-                <div class="col-6">
-                    <button class="btn btn-primary w-100" type="submit">Entra</button>
+            <!-- Form -->
+            <form method="post" th:action="@{/login}" class="d-grid gap-3">
+                <div>
+                    <label class="form-label fw-medium">Email</label>
+                    <input class="form-control" type="email" name="username"
+                           placeholder="tua@email.it" autocomplete="email" required>
                 </div>
-                <div class="col-6">
-                    <a href="/" class="btn btn-outline-secondary w-100">Torna alla Home</a>
+                <div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <label class="form-label fw-medium mb-0">Password</label>
+                        <a th:href="@{/forgot-password}" class="small text-muted">Password dimenticata?</a>
+                    </div>
+                    <input class="form-control mt-1" type="password" name="password"
+                           autocomplete="current-password" required>
                 </div>
+
+                <button class="btn btn-dark w-100 mt-1" type="submit">
+                    <i class="bi bi-box-arrow-in-right me-1"></i>Entra
+                </button>
+            </form>
+
+            <div class="divider my-3">oppure</div>
+
+            <div class="text-center small">
+                Non hai un account?
+                <a href="/register" class="fw-medium text-dark">Registrati gratis</a>
             </div>
-        </form>
-
-        <!-- Link sotto i pulsanti, centrati -->
-        <div class="text-center mt-3 small">
-            <a th:href="@{/forgot-password}">Password dimenticata?</a> <span class="mx-2 text-muted">|</span> <a
-                th:href="@{/reinvia-verifica}">Reinvia email di verifica</a>
-        </div>
-
-        <!-- Testo sotto (opzionale) -->
-        <div class="text-center mt-2 small text-muted">
-            Non hai ancora un account? <a href="/register">Registrati</a>
+            <div class="text-center small mt-2 text-muted">
+                <a th:href="@{/reinvia-verifica}" class="text-muted">Reinvia email di verifica</a>
+            </div>
         </div>
     </div>
+
     <!-- FOOTER (include Bootstrap JS) -->
     <div th:replace="~{fragments :: footer}"></div>
 </body>

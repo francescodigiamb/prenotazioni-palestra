@@ -3,6 +3,18 @@
 
 <head>
     <th:block th:replace="~{fragments :: baseHead('Mie prenotazioni', null)}"></th:block>
+    <style>
+        .fc-pren-card {
+            background: #fff;
+            border-radius: 14px;
+            border-left: 5px solid #dee2e6;
+            box-shadow: 0 1px 6px rgba(0,0,0,.07);
+            overflow: hidden;
+        }
+        .fc-pren--confermato { border-left-color: #198754; }
+        .fc-pren--riserva    { border-left-color: #ffc107; }
+        .fc-pren--passato    { border-left-color: #adb5bd; }
+    </style>
 </head>
 
 <body>
@@ -68,21 +80,25 @@
 
         <!-- MOBILE: card ATTIVE -->
         <div th:if="${prenotazioniAttive != null and !prenotazioniAttive.isEmpty()}" class="d-block d-md-none">
-            <div class="card mb-3 shadow-sm" th:each="p : ${prenotazioniAttive}">
-                <div class="card-body">
-                    <h5 class="card-title mb-1" th:text="${p.corso.nome}">Nome corso</h5>
+            <div th:each="p : ${prenotazioniAttive}"
+                 class="fc-pren-card mb-3"
+                 th:classappend="${p.riserva} ? 'fc-pren--riserva' : (${coloreMap[p.id] == 'success'} ? 'fc-pren--confermato' : 'fc-pren--passato')">
+                <div class="p-3">
 
-                    <div class="mb-2">
-                        <span th:if="${p.riserva}" class="badge bg-warning text-dark">In attesa</span>
-
-                        <span th:if="${!p.riserva}" class="badge" th:text="${statoMap[p.id]}"
-                            th:classappend="' bg-' + ${coloreMap[p.id]}">
+                    <div class="d-flex justify-content-between align-items-start mb-1">
+                        <h5 class="fw-bold mb-0" th:text="${p.corso.nome}">Nome corso</h5>
+                        <span th:if="${p.riserva}" class="badge bg-warning text-dark ms-2 flex-shrink-0">In attesa</span>
+                        <span th:if="${!p.riserva}" class="badge ms-2 flex-shrink-0"
+                              th:text="${statoMap[p.id]}"
+                              th:classappend="' bg-' + ${coloreMap[p.id]}">
                         </span>
                     </div>
 
-                    <p class="card-subtitle text-muted mb-2">
+                    <p class="text-muted small mb-3">
+                        <i class="bi bi-calendar3 me-1"></i>
                         <span th:text="${#temporals.format(p.corso.data, 'EEEE dd/MM/yyyy')}">lunedì 01/09/2025</span>
-                        ·
+                        &nbsp;&nbsp;
+                        <i class="bi bi-clock me-1"></i>
                         <span th:text="${#temporals.format(p.corso.orario, 'HH:mm')}">18:00</span>
                     </p>
 
@@ -90,7 +106,7 @@
                         <input type="hidden" name="email" th:value="${p.utente.email}" />
                         <button type="submit" class="btn btn-danger btn-sm"
                             onclick="return confirm('Sei sicuro di voler disdire questa prenotazione?')">
-                            Disdici prenotazione
+                            <i class="bi bi-x-circle me-1"></i>Disdici prenotazione
                         </button>
                     </form>
                 </div>
@@ -139,25 +155,26 @@
 
         <!-- MOBILE: card ARCHIVIO -->
         <div th:if="${prenotazioniArchivio != null and !prenotazioniArchivio.isEmpty()}" class="d-block d-md-none">
-            <div class="card mb-3 shadow-sm" th:each="p : ${prenotazioniArchivio}">
-                <div class="card-body">
-                    <h5 class="card-title mb-1" th:text="${p.corso.nome}">Nome corso</h5>
+            <div th:each="p : ${prenotazioniArchivio}"
+                 class="fc-pren-card fc-pren--passato mb-3">
+                <div class="p-3">
 
-                    <div class="mb-2">
-                        <span th:if="${p.riserva}" class="badge bg-warning text-dark">In attesa</span>
-
-                        <span th:if="${!p.riserva}" class="badge" th:text="${statoMap[p.id]}"
-                            th:classappend="' bg-' + ${coloreMap[p.id]}">
+                    <div class="d-flex justify-content-between align-items-start mb-1">
+                        <h5 class="fw-bold mb-0 text-muted" th:text="${p.corso.nome}">Nome corso</h5>
+                        <span th:if="${p.riserva}" class="badge bg-warning text-dark ms-2 flex-shrink-0">In attesa</span>
+                        <span th:if="${!p.riserva}" class="badge ms-2 flex-shrink-0"
+                              th:text="${statoMap[p.id]}"
+                              th:classappend="' bg-' + ${coloreMap[p.id]}">
                         </span>
                     </div>
 
-                    <p class="card-subtitle text-muted mb-2">
+                    <p class="text-muted small mb-0">
+                        <i class="bi bi-calendar3 me-1"></i>
                         <span th:text="${#temporals.format(p.corso.data, 'EEEE dd/MM/yyyy')}">lunedì 01/09/2025</span>
-                        ·
+                        &nbsp;&nbsp;
+                        <i class="bi bi-clock me-1"></i>
                         <span th:text="${#temporals.format(p.corso.orario, 'HH:mm')}">18:00</span>
                     </p>
-
-                    <!-- nessuna azione in archivio -->
                 </div>
             </div>
         </div>

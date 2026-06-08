@@ -18,10 +18,11 @@
         <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
         <style th:inline="css">
             :root {
-                /* Colore di default (bianco sporco). Puoi passarlo come 2° argomento al fragment */
-                --bg-offwhite:
-                /*[[${bgColor} ?: '#F6F3EA']]*/
-                '#F6F3EA';
+                --bg-offwhite: /*[[${bgColor} ?: '#F6F3EA']]*/ '#F6F3EA';
+                --fc-dark:     #1f1f1f;
+                --fc-green:    #198754;
+                --fc-yellow:   #ffc107;
+                --fc-red:      #dc3545;
             }
 
             body {
@@ -29,14 +30,58 @@
                 padding: 0;
                 min-height: 100vh;
                 background-color: var(--bg-offwhite);
+                -webkit-tap-highlight-color: transparent;
             }
 
             @media (prefers-color-scheme: dark) {
+                body { background-color: #eae6db; }
+            }
 
-                /* opzionale: leggera correzione in dark mode */
-                body {
-                    background-color: #eae6db;
-                }
+            /* ── Bottoni touch-friendly ── */
+            .btn {
+                min-height: 46px;
+                border-radius: 10px;
+                font-weight: 500;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: .35rem;
+                transition: opacity .15s ease, transform .1s ease;
+            }
+            .btn:active  { transform: scale(.96); opacity: .88; }
+            .btn-sm      { min-height: 36px; border-radius: 8px; }
+            .btn-lg      { min-height: 52px; border-radius: 12px; }
+
+            /* ── Form controls ── */
+            .form-control,
+            .form-select {
+                border-radius: 10px;
+                min-height: 46px;
+            }
+            /* Previene zoom automatico su iOS */
+            @media (max-width: 767px) {
+                .form-control,
+                .form-select { font-size: 16px !important; }
+            }
+
+            /* ── Card ── */
+            .card {
+                border-radius: 14px;
+                border: none;
+            }
+            .card.shadow-sm {
+                box-shadow: 0 2px 14px rgba(0,0,0,.08) !important;
+            }
+
+            /* ── Badge ── */
+            .badge { border-radius: 6px; font-weight: 600; letter-spacing: .02em; }
+
+            /* ── Navbar link active ── */
+            .nav-link.active { font-weight: 600; }
+
+            /* ── Alert mobile spacing ── */
+            @media (max-width: 767px) {
+                .alert { border-radius: 10px; font-size: .95rem; }
             }
         </style>
     </th:block>
@@ -76,7 +121,8 @@
                 </ul>
 
                 <!-- Right -->
-                <div class="d-flex align-items-center flex-column flex-lg-row gap-2">
+                <hr class="d-lg-none border-secondary my-1">
+                <div class="d-flex align-items-start flex-column flex-lg-row align-items-lg-center gap-2">
 
                     <!-- Admin menu (dropdown unico, funziona su desktop e mobile) -->
                     <div class="dropdown" th:if="${#authorization.expression('hasRole(''ADMIN'')')}">
@@ -84,7 +130,7 @@
                             data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-gear me-1"></i>Admin
                         </button>
-                        <ul class="dropdown-menu dropdown-menu-end">
+                        <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="/admin/corsi">Gestione corsi</a></li>
                             <li><a class="dropdown-item" href="/admin/prenotazioni">Prenotazioni</a></li>
                             <li><a class="dropdown-item" href="/admin/modelli">Modelli corsi</a></li>
@@ -189,40 +235,39 @@
             </div>
         </footer>
 
-    </th:block>
-
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Auto-dismiss alert dopo 6 secondi -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            document.querySelectorAll('.alert.alert-dismissible').forEach(function (el) {
-                setTimeout(function () {
-                    var bsAlert = bootstrap.Alert.getOrCreateInstance(el);
-                    bsAlert.close();
-                }, 6000);
+        <!-- Bootstrap JS -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        <!-- Auto-dismiss alert dopo 6 secondi -->
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                document.querySelectorAll('.alert.alert-dismissible').forEach(function (el) {
+                    setTimeout(function () {
+                        var bsAlert = bootstrap.Alert.getOrCreateInstance(el);
+                        bsAlert.close();
+                    }, 6000);
+                });
             });
-        });
-    </script>
-    <!-- Easter egg per sviluppatori curiosi -->
-    <script>
-        console.log(
-            '%cFitnessClub',
-            'font-size: 22px; font-weight: bold; color: #1f1f1f; background: #F6F3EA; padding: 6px 12px; border-radius: 6px;'
-        );
-        console.log(
-            '%cCiao, sviluppatore curioso 👋',
-            'font-size: 14px; font-weight: bold; color: #1f1f1f;'
-        );
-        console.log(
-            '%cQuesto sito è stato costruito con Spring Boot, Thymeleaf, qualche nottata e parecchio Stack Overflow.',
-            'font-size: 12px; color: #555;'
-        );
-        console.log(
-            '%c— Francesco Di Giambattista, 2025',
-            'font-size: 12px; color: #888; font-style: italic;'
-        );
-    </script>
+        </script>
+        <!-- Easter egg per sviluppatori curiosi -->
+        <script>
+            console.log(
+                '%cFitnessClub',
+                'font-size: 22px; font-weight: bold; color: #1f1f1f; background: #F6F3EA; padding: 6px 12px; border-radius: 6px;'
+            );
+            console.log(
+                '%cCiao, sviluppatore curioso 👋',
+                'font-size: 14px; font-weight: bold; color: #1f1f1f;'
+            );
+            console.log(
+                '%cQuesto sito è stato costruito con Spring Boot, Thymeleaf, qualche nottata e parecchio Stack Overflow.',
+                'font-size: 12px; color: #555;'
+            );
+            console.log(
+                '%c— Francesco Di Giambattista, 2025',
+                'font-size: 12px; color: #888; font-style: italic;'
+            );
+        </script>
+    </th:block>
 </body>
 
 </html>
