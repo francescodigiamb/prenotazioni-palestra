@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="it" xmlns:th="http://www.thymeleaf.org">
 
 <head>
@@ -26,6 +26,8 @@
             <a th:href="@{/login}" class="btn btn-outline-secondary">Torna al login</a>
         </form>
     </div>
+    <!-- FOOTER (include Bootstrap JS) -->
+    <div th:replace="~{fragments :: footer}"></div>
 </body>
 
 </html>
