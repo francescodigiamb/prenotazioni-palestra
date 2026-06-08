@@ -4,6 +4,7 @@ import it.palestra.prenotazioni_palestra.model.VerificationToken;
 import it.palestra.prenotazioni_palestra.repository.UtenteRepository;
 import it.palestra.prenotazioni_palestra.repository.VerificationTokenRepository;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.ui.Model;
 
@@ -20,6 +21,7 @@ public class VerificationController {
         this.utenteRepo = utenteRepo;
     }
 
+    @Transactional
     @GetMapping("/verify")
     public String verify(String token, Model model) {
         var maybe = tokenRepo.findByToken(token);

@@ -64,16 +64,14 @@ public class BrevoEmailService {
 
         String subject = "Prenotazione cancellata - " + nomeCorso;
 
-        String html = ""
-                + "<!DOCTYPE html><html><body style='font-family:Arial,sans-serif;color:#222;'>"
-                + "<h2>Ciao " + nomeUtente + ",</h2>"
-                + "<p>Ti informiamo che la tua prenotazione al corso <strong>" + nomeCorso + "</strong> "
-                + "del <strong>" + data + "</strong> alle <strong>" + ora + "</strong> "
-                + "è stata cancellata da Tony.</p>"
-                + "<p>Se ritieni si tratti di un errore o vuoi avere maggiori informazioni, "
-                + "contatta direttamente la palestra.</p>"
-                + "<p>A presto,<br>Lo staff</p>"
-                + "</body></html>";
+        String html = """
+                <p>Ciao %s,</p>
+                <p>Ti informiamo che la tua prenotazione al corso <b>%s</b>
+                del <b>%s</b> alle <b>%s</b> è stata cancellata da Tony.</p>
+                <p>Se ritieni si tratti di un errore o vuoi avere maggiori informazioni,
+                contatta direttamente la palestra.</p>
+                <p>A presto,<br>Lo staff di FitnessClub Chieti</p>
+                """.formatted(nomeUtente, nomeCorso, data, ora);
 
         sendEmail(fromEmail, toEmail, subject, html);
     }

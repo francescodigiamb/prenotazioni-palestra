@@ -69,9 +69,8 @@ public class ControllerPrenotazioni {
         }
         Utente utente = maybeUtente.get();
 
-        // 3) Corso (se hai un metodo lockById usa quello; qui usiamo findById per
-        // compatibilità)
-        Optional<Corso> maybeCorso = corsoRepository.findById(corsoId);
+        // 3) Corso — lock pessimistico per evitare overbooking concorrente
+        Optional<Corso> maybeCorso = corsoRepository.lockById(corsoId);
         if (!maybeCorso.isPresent()) {
             redirectAttrs.addFlashAttribute("error", "Corso non trovato.");
             return "redirect:/corsi";

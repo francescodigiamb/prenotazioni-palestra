@@ -55,6 +55,9 @@ public class PasswordResetService {
 
         Utente utente = opt.get();
 
+        // invalida eventuali token precedenti ancora validi
+        tokenRepo.deleteAllByUtente_Id(utente.getId());
+
         // crea token valido 30 minuti
         PasswordResetToken token = PasswordResetToken.of(utente, 30);
         tokenRepo.save(token);
