@@ -57,12 +57,10 @@
                             <td th:text="${#temporals.format(p.corso.data, 'EEEE dd/MM/yyyy')}">lunedì 01/09/2025</td>
                             <td th:text="${#temporals.format(p.corso.orario, 'HH:mm')}">18:00</td>
                             <td>
-                                <form th:action="@{/prenotazioni/{id}/cancella(id=${p.id})}" method="post">
+                                <form th:action="@{/prenotazioni/{id}/cancella(id=${p.id})}" method="post"
+                                      data-confirm="Sei sicuro di voler disdire questa prenotazione?">
                                     <input type="hidden" name="email" th:value="${p.utente.email}" />
-                                    <button type="submit" class="btn btn-danger btn-sm"
-                                        onclick="return confirm('Sei sicuro di voler disdire questa prenotazione?')">
-                                        Disdici
-                                    </button>
+                                    <button type="submit" class="btn btn-danger btn-sm">Disdici</button>
                                 </form>
                             </td>
                             <td>
@@ -102,10 +100,10 @@
                         <span th:text="${#temporals.format(p.corso.orario, 'HH:mm')}">18:00</span>
                     </p>
 
-                    <form th:action="@{/prenotazioni/{id}/cancella(id=${p.id})}" method="post" class="d-grid">
+                    <form th:action="@{/prenotazioni/{id}/cancella(id=${p.id})}" method="post" class="d-grid"
+                          data-confirm="Sei sicuro di voler disdire questa prenotazione?">
                         <input type="hidden" name="email" th:value="${p.utente.email}" />
-                        <button type="submit" class="btn btn-danger btn-sm"
-                            onclick="return confirm('Sei sicuro di voler disdire questa prenotazione?')">
+                        <button type="submit" class="btn btn-danger btn-sm">
                             <i class="bi bi-x-circle me-1"></i>Disdici prenotazione
                         </button>
                     </form>

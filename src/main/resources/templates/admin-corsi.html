@@ -123,7 +123,7 @@
                                 </form>
                                 <!-- Elimina -->
                                 <form th:action="@{/admin/corsi/{id}/elimina(id=${corso.id})}" method="post" class="d-inline"
-                                      onsubmit="return confirm('Eliminare definitivamente questo corso?');">
+                                      data-confirm="Eliminare definitivamente questo corso?">
                                     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                                     <button type="submit" class="btn btn-sm btn-outline-danger">
                                         <i class="bi bi-trash"></i>
@@ -186,7 +186,7 @@
                             </form>
                             <!-- Elimina -->
                             <form th:action="@{/admin/corsi/{id}/elimina(id=${corso.id})}" method="post" class="flex-fill"
-                                  onsubmit="return confirm('Eliminare definitivamente questo corso?');">
+                                  data-confirm="Eliminare definitivamente questo corso?">
                                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                                 <button type="submit" class="btn btn-sm btn-outline-danger w-100">
                                     <i class="bi bi-trash me-1"></i>Elimina

@@ -115,7 +115,7 @@
                                 <!-- Rimuovi utente dal corso (sempre disponibile) -->
                                 <form method="post" th:action="@{/admin/prenotazioni/{id}/cancella(id=${p.id})}"
                                     class="m-0"
-                                    th:attr="onsubmit=|return confirm('Rimuovere ${p.utente.nome} ${p.utente.cognome} dal corso? L\\'utente riceverà una mail di notifica.');|">
+                                    th:attr="data-confirm=|Rimuovere ${p.utente.nome} ${p.utente.cognome} dal corso? L'utente riceverà una mail di notifica.|">
                                     <input type="hidden" name="corsoId" th:value="${corso.id}">
                                     <button type="submit" class="btn btn-sm btn-danger" title="Rimuovi dal corso">
                                         ✕
@@ -131,7 +131,7 @@
 
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <div th:replace="~{fragments :: footer}"></div>
 </body>
 
 </html>

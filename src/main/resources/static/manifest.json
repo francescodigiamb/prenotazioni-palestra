@@ -1,0 +1,21 @@
+{
+  "name": "FitnessClub Chieti",
+  "short_name": "FitnessClub",
+  "description": "Prenota i tuoi corsi in palestra",
+  "start_url": "/",
+  "display": "browser",
+  "background_color": "#F6F3EA",
+  "theme_color": "#1f1f1f",
+  "icons": [
+    {
+      "src": "/img/logo-palestra.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/img/logo-palestra.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
