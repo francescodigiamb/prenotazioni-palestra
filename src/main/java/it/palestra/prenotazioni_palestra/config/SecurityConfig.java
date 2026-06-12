@@ -42,7 +42,9 @@ public class SecurityConfig {
                                                                 "/verify",
                                                                 "/forgot-password",
                                                                 "/reset-password",
-                                                                "/css/**", "/js/**", "/img/**", "/actuator/health")
+                                                                "/css/**", "/js/**", "/img/**",
+                                                                "/manifest.json", "/favicon.svg", "/favicon.ico",
+                                                                "/actuator/health")
                                                 .permitAll()
                                                 .requestMatchers("/account/**").authenticated()
                                                 .requestMatchers("/prenotazioni/**").authenticated()
