@@ -55,7 +55,10 @@
                     </thead>
                     <tbody>
                         <tr th:each="corso : ${corsi}">
-                            <td th:text="${corso.nome}">Nome corso</td>
+                            <td>
+                                <span th:replace="~{fragments :: iconaCorso(${corso.nome}, 'sm')}"></span>
+                                <span th:text="${corso.nome}">Nome corso</span>
+                            </td>
                             <td th:text="${#temporals.format(corso.data, 'EEEE dd/MM/yyyy')}">lunedì 01/09/2025</td>
                             <td th:text="${#temporals.format(corso.orario, 'HH:mm')}">18:00</td>
                             <td style="min-width:140px;">
@@ -97,7 +100,10 @@
 
                     <!-- Titolo + badge stato -->
                     <div class="d-flex justify-content-between align-items-start mb-2">
-                        <h5 class="card-title mb-0 fw-bold" th:text="${corso.nome}">Nome corso</h5>
+                        <div class="d-flex align-items-center gap-2">
+                            <span th:replace="~{fragments :: iconaCorso(${corso.nome}, 'lg')}"></span>
+                            <h5 class="card-title mb-0 fw-bold" th:text="${corso.nome}">Nome corso</h5>
+                        </div>
                         <span th:if="${pienoMap[corso.id]}"
                             class="badge bg-danger ms-2 flex-shrink-0">Al completo</span>
                         <span th:if="${!pienoMap[corso.id] and soloRiservaMap[corso.id]}"

@@ -90,6 +90,14 @@
             @media (max-width: 767px) {
                 .alert { border-radius: 10px; font-size: .95rem; }
             }
+
+            /* ── Icona corso (cerchio colorato) ── */
+            .fc-ico {
+                display: inline-flex; align-items: center; justify-content: center;
+                flex-shrink: 0; border-radius: 50%;
+            }
+            .fc-ico--lg { width: 40px; height: 40px; font-size: 1.2rem; }
+            .fc-ico--sm { width: 28px; height: 28px; font-size: .9rem; margin-right: .5rem; vertical-align: middle; }
         </style>
     </th:block>
 
@@ -188,6 +196,28 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Chiudi"></button>
         </div>
     </div>
+
+    <!-- ICONA CORSO
+         Uso: <span th:replace="~{fragments :: iconaCorso(${corso.nome}, 'lg')}"></span>  (size: 'lg' | 'sm')
+         Il nome viene normalizzato (minuscolo, solo lettere): "Total- Body" -> "totalbody", "G.A.G." -> "gag".
+         Corsi non riconosciuti -> stellina grigia. -->
+    <span th:fragment="iconaCorso(nome, size)"
+        th:with="k=${nome != null ? nome.toLowerCase().replaceAll('[^a-z]', '') : ''},
+                 ico=${k == 'pilates' ? 'bi-yin-yang'
+                     : (k == 'totalbody' ? 'bi-lightning-charge-fill'
+                     : (k == 'gag' ? 'bi-fire'
+                     : (k == 'funzionale' ? 'bi-stopwatch'
+                     : (k == 'steptone' ? 'bi-heart-pulse-fill' : 'bi-star-fill'))))},
+                 col=${k == 'pilates' ? '#7c5cbf'
+                     : (k == 'totalbody' ? '#0d6efd'
+                     : (k == 'gag' ? '#e8590c'
+                     : (k == 'funzionale' ? '#0c8599'
+                     : (k == 'steptone' ? '#d6336c' : '#6c757d'))))}"
+        th:class="${'fc-ico fc-ico--' + size}"
+        th:style="${'background:' + col + '1f; color:' + col + ';'}"
+        aria-hidden="true">
+        <i th:class="${'bi ' + ico}"></i>
+    </span>
 
     <!-- FOOTER -->
     <th:block th:fragment="footer">
