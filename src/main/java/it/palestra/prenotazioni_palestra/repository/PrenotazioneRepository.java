@@ -1,6 +1,7 @@
 package it.palestra.prenotazioni_palestra.repository;
 
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -72,5 +73,10 @@ public interface PrenotazioneRepository extends JpaRepository<Prenotazione, Inte
       @Param("corsoId") Integer corsoId,
       @Param("dataDa") LocalDate dataDa,
       @Param("dataA") LocalDate dataA);
+
+  // Conteggio prenotazioni per piu' corsi in una sola query.
+  // Ogni riga: [corsoId (Integer), riserva (Boolean), quante (Long)]
+  @Query("SELECT p.corso.id, p.riserva, COUNT(p) FROM Prenotazione p WHERE p.corso.id IN :ids GROUP BY p.corso.id, p.riserva")
+  List<Object[]> contaPerCorsi(@Param("ids") Collection<Integer> ids);
 
 }

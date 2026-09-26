@@ -48,27 +48,20 @@ public class ControllerCorsi {
             @RequestParam(value = "q", required = false) String q,
             Model model) {
 
-        List<Corso> tutti;
-        try {
-            tutti = corsoRepository.findAll();
-        } catch (Exception e) {
-            tutti = Collections.emptyList();
-        }
-
         LocalDate oggi = LocalDate.now();
         LocalTime ora = LocalTime.now();
         LocalDate limite = oggi.plusWeeks(2); // max 14 giorni
 
-        // 1) filtro base: non scaduti + entro 14 giorni
-        List<Corso> futuri = tutti.stream()
-                .filter(c -> {
-                    LocalDate d = c.getData();
-                    LocalTime t = c.getOrario();
-                    boolean nonScaduto = d.isAfter(oggi) || (d.isEqual(oggi) && t.isAfter(ora));
-                    boolean entroLimite = !d.isAfter(limite);
-                    return nonScaduto && entroLimite;
-                })
-                .toList();
+        // 1) una sola query: solo i corsi da oggi a +14 giorni (non più tutto lo storico),
+        // poi scarto quelli di oggi già iniziati
+        List<Corso> futuri;
+        try {
+            futuri = corsoRepository.findTraDate(oggi, limite).stream()
+                    .filter(c -> c.getData().isAfter(oggi) || c.getOrario().isAfter(ora))
+                    .toList();
+        } catch (Exception e) {
+            futuri = Collections.emptyList();
+        }
 
         // 2) filtro di ricerca (se q presente)
         String query = (q != null) ? q.trim().toLowerCase() : null;
@@ -115,12 +108,28 @@ public class ControllerCorsi {
 
         int LIMITE_RISERVE = 6; // per ora fisso, come in ControllerPrenotazioni
 
+        // conteggi prenotati con UNA sola query per tutti i corsi (prima erano 2 query per corso)
         for (Corso c : futuri) {
-            int prenNormali = prenotazioneRepository.countByCorsoAndRiservaFalse(c);
-            int prenTotali = prenotazioneRepository.countByCorso(c);
+            prenotatiMap.put(c.getId(), 0);
+            prenotatiNormaliMap.put(c.getId(), 0);
+        }
+        if (!futuri.isEmpty()) {
+            List<Integer> ids = futuri.stream().map(Corso::getId).toList();
+            for (Object[] riga : prenotazioneRepository.contaPerCorsi(ids)) {
+                Integer corsoId = (Integer) riga[0];
+                boolean riserva = (Boolean) riga[1];
+                int quanti = ((Number) riga[2]).intValue();
 
-            prenotatiNormaliMap.put(c.getId(), prenNormali);
-            prenotatiMap.put(c.getId(), prenTotali);
+                prenotatiMap.merge(corsoId, quanti, Integer::sum);
+                if (!riserva) {
+                    prenotatiNormaliMap.merge(corsoId, quanti, Integer::sum);
+                }
+            }
+        }
+
+        for (Corso c : futuri) {
+            int prenNormali = prenotatiNormaliMap.get(c.getId());
+            int prenTotali = prenotatiMap.get(c.getId());
 
             boolean completoNormali = prenNormali >= c.getMaxPosti();
             boolean completoConRiserve = prenTotali >= c.getMaxPosti() + LIMITE_RISERVE;
