@@ -321,7 +321,7 @@ public class ControllerCorsi {
         gag.capienzaTipica = 20;
         gag.riserveTipiche = 6;
         gag.durata = "50 min";
-        gag.slot = java.util.Arrays.asList("Lunedì 19:00", "Mercoledì 19:00", "Venerdì 18:00", "Sabato 16:15");
+        gag.slot = java.util.Arrays.asList("Lunedì 19:00", "Mercoledì 19:00", "Venerdì 18:00", "Sabato 16:00");
         schede.add(gag);
 
         SchedaCatalogo funzionale = new SchedaCatalogo();
@@ -330,7 +330,7 @@ public class ControllerCorsi {
         funzionale.capienzaTipica = 20;
         funzionale.riserveTipiche = 6;
         funzionale.durata = "50 min";
-        funzionale.slot = java.util.Arrays.asList("Martedì 19:00 e 20:00", "Giovedì 19:00 e 20:00", "Sabato 15:00");
+        funzionale.slot = java.util.Arrays.asList("Martedì 19:00 e 20:00", "Giovedì 19:00 e 20:00", "Sabato 17:00");
         schede.add(funzionale);
 
         SchedaCatalogo pilates = new SchedaCatalogo();
@@ -339,7 +339,7 @@ public class ControllerCorsi {
         pilates.capienzaTipica = 20;
         pilates.riserveTipiche = 6;
         pilates.durata = "50 min";
-        pilates.slot = java.util.Arrays.asList("Lunedì 20:00 e 21:00", "Mercoledì 18:00", "Venerdì 20:00 e 21:00");
+        pilates.slot = java.util.Arrays.asList("Lunedì 20:00 e 21:00", "Mercoledì 21:00", "Venerdì 20:00 e 21:00");
         schede.add(pilates);
 
         SchedaCatalogo steptone = new SchedaCatalogo();
@@ -364,7 +364,7 @@ public class ControllerCorsi {
 
         // Orari fissi (ordine fisso)
         java.util.List<String> orariFissi = java.util.Arrays.asList(
-                "15:00", "16:15", "18:00", "19:00", "20:00", "21:00");
+                "16:00", "17:00", "18:00", "19:00", "20:00", "21:00");
 
         // Griglia: chiave "Giorno|Orario" -> Nome corso
         java.util.Map<String, String> grigliaOrari = new java.util.HashMap<>();
@@ -380,9 +380,9 @@ public class ControllerCorsi {
         grigliaOrari.put("Martedì|20:00", "Funzionale");
 
         // MERCOLEDÌ
-        grigliaOrari.put("Mercoledì|18:00", "Pilates");
         grigliaOrari.put("Mercoledì|19:00", "G.A.G.");
         grigliaOrari.put("Mercoledì|20:00", "Step-Tone");
+        grigliaOrari.put("Mercoledì|21:00", "Pilates");
 
         // GIOVEDÌ
         grigliaOrari.put("Giovedì|18:00", "Total Body");
@@ -396,8 +396,8 @@ public class ControllerCorsi {
         grigliaOrari.put("Venerdì|21:00", "Pilates");
 
         // SABATO
-        grigliaOrari.put("Sabato|15:00", "Funzionale");
-        grigliaOrari.put("Sabato|16:15", "G.A.G.");
+        grigliaOrari.put("Sabato|16:00", "G.A.G.");
+        grigliaOrari.put("Sabato|17:00", "Funzionale");
 
         // Passo al template
         model.addAttribute("durataCorsi", "50 minuti");
