@@ -93,9 +93,21 @@
 
         <!-- MOBILE: card verticali -->
         <div th:if="${!corsi.isEmpty()}" class="d-block d-md-none">
+            <th:block th:each="corso, st : ${corsi}">
+
+            <!-- Intestazione giorno: solo quando cambia la data rispetto al corso precedente -->
+            <div class="fc-day" th:if="${st.first or !corsi[st.index - 1].data.equals(corso.data)}"
+                th:classappend="${st.first} ? 'mt-0' : ''">
+                <span>
+                    <span th:text="${corso.data.equals(oggi)} ? 'Oggi' : (${corso.data.equals(domani)} ? 'Domani' : ${#strings.capitalize(#temporals.format(corso.data, 'EEEE'))})">Lunedì</span>
+                    <small th:text="${#temporals.format(corso.data, 'dd/MM')}">28/09</small>
+                </span>
+                <small class="ms-auto"
+                    th:text="${corsiPerGiorno[corso.data]} + (${corsiPerGiorno[corso.data] == 1} ? ' corso' : ' corsi')">2 corsi</small>
+            </div>
+
             <div class="fc-card card mb-3"
-                th:classappend="${pienoMap[corso.id]} ? 'fc-card--pieno' : (${soloRiservaMap[corso.id]} ? 'fc-card--riserva' : 'fc-card--aperto')"
-                th:each="corso : ${corsi}">
+                th:classappend="${pienoMap[corso.id]} ? 'fc-card--pieno' : (${soloRiservaMap[corso.id]} ? 'fc-card--riserva' : 'fc-card--aperto')">
                 <div class="card-body p-3">
 
                     <!-- Titolo + badge stato -->
@@ -112,12 +124,8 @@
                             class="badge bg-success ms-2 flex-shrink-0">Disponibile</span>
                     </div>
 
-                    <!-- Data + Ora con icone -->
+                    <!-- Ora (la data è già nell'intestazione del giorno) -->
                     <div class="d-flex gap-3 mb-3 text-muted small">
-                        <span>
-                            <i class="bi bi-calendar3 me-1"></i>
-                            <span th:text="${#temporals.format(corso.data, 'EEE dd/MM')}">lun 01/09</span>
-                        </span>
                         <span>
                             <i class="bi bi-clock me-1"></i>
                             <span th:text="${#temporals.format(corso.orario, 'HH:mm')}">18:00</span>
@@ -154,6 +162,7 @@
                     </div>
                 </div>
             </div>
+            </th:block>
         </div>
 
         <style>
@@ -166,6 +175,20 @@
             .fc-card--aperto  { border-left-color: #198754; }
             .fc-card--riserva { border-left-color: #ffc107; }
             .fc-card--pieno   { border-left-color: #dc3545; }
+
+            /* Intestazione giorno (resta in alto mentre si scorre) */
+            .fc-day {
+                position: sticky; top: 0; z-index: 5;
+                background-color: var(--bg-offwhite);
+                display: flex; align-items: baseline; gap: .5rem;
+                margin: 1.1rem 0 .6rem; padding: .55rem .1rem .45rem;
+                font-weight: 700; font-size: 1rem;
+                border-bottom: 1px solid rgba(0,0,0,.08);
+            }
+            .fc-day small { font-weight: 400; color: #6c757d; font-size: .8rem; }
+            @media (prefers-color-scheme: dark) {
+                .fc-day { background-color: #eae6db; }
+            }
         </style>
     </div>
     <!-- FOOTER (include Bootstrap JS) -->

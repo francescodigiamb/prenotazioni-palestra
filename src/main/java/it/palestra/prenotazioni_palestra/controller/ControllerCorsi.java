@@ -96,6 +96,17 @@ public class ControllerCorsi {
             model.addAttribute("q", q);
         }
 
+        // 3) ordine cronologico: data, poi orario
+        futuri = futuri.stream()
+                .sorted(Comparator.comparing(Corso::getData).thenComparing(Corso::getOrario))
+                .toList();
+
+        // numero di corsi per giorno (intestazioni "Lunedì 28/09 · 3 corsi" su mobile)
+        var corsiPerGiorno = new java.util.HashMap<LocalDate, Integer>();
+        for (Corso c : futuri) {
+            corsiPerGiorno.merge(c.getData(), 1, Integer::sum);
+        }
+
         // mappe prenotati / stato capienza
         var prenotatiMap = new java.util.HashMap<Integer, Integer>(); // totale (normali + riserva)
         var prenotatiNormaliMap = new java.util.HashMap<Integer, Integer>();
@@ -125,6 +136,9 @@ public class ControllerCorsi {
         model.addAttribute("prenotatiNormaliMap", prenotatiNormaliMap);
         model.addAttribute("soloRiservaMap", soloRiservaMap);
         model.addAttribute("pienoMap", pienoMap);
+        model.addAttribute("corsiPerGiorno", corsiPerGiorno);
+        model.addAttribute("oggi", oggi);
+        model.addAttribute("domani", oggi.plusDays(1));
 
         return "corsi";
     }
